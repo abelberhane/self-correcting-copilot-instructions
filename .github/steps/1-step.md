@@ -2,28 +2,37 @@
 
 > **Lesson 1 · Governed corrections** · Step 1 of 10
 
-## Theory 🧠
+### 📖 Theory: Identity is the first control
 
-Define exactly who can submit corrections and require `/copilot-learn` on a Copilot-associated PR.
+Automation that edits its own instructions must know **who** is allowed to teach it. Anyone can add a label or copy a phrase, so labels and wording alone are not proof of identity. GitHub reports an immutable **author association** on every comment, such as `OWNER` or `MEMBER`, and that is what you trust.
 
-## Activity ⌨️
+The second control is an **explicit signal**. Instead of guessing intent from ordinary review conversation, this exercise only reacts to a deliberate `/copilot-learn` command. Explicit beats inferred: a maintainer must clearly opt in before anything is proposed.
 
-1. Edit `.github/learning-config.yml`. Keep OWNER and MEMBER trust, the exact command, allowed fields, and the automation-loop guard.
-2. Run `npm run check-step -- 1` and the relevant tests.
-3. Commit and push the change.
+> [!NOTE]
+> A correction is only accepted on a pull request labeled `copilot-authored`. That keeps the pipeline scoped to Copilot-associated work instead of every comment in the repository.
 
-## Actions trigger 🚦
+### ⌨️ Activity: Configure who can teach the repository
 
-Comment `/copilot-learn` on a PR labeled `copilot-authored`, or push the configuration change.
+1. Open `.github/learning-config.yml`.
+2. Confirm `command` is exactly `/copilot-learn`.
+3. Confirm `trusted_associations` includes `OWNER` and `MEMBER`.
+4. Review `allowed_fields` so only documented fields are ever parsed.
+5. Run `npm run check-step -- 1` locally.
+6. Commit and push your change.
 
-## Grading check ✅
+### ✅ How this step is graded
 
-The grader verifies actor-association trust and the exact command.
+| | |
+|---|---|
+| 🚦 **Trigger** | Push a change to `.github/learning-config.yml`. |
+| 🔍 **Check** | The grader loads your configuration and confirms a trusted maintainer comment is accepted while the exact command is required. |
+| 💬 **Feedback** | A failed run updates the exercise issue with the specific missing control and the file to fix. |
 
-## Targeted feedback 💬
+<details>
+<summary><b>Having trouble? 🤷</b></summary><br/>
 
-A failed **Step 1** run updates the exercise issue with the missing control and the relevant file.
+- Confirm the comment author is `OWNER` or `MEMBER`, or is listed in `trusted_logins`.
+- Remember that a label never establishes identity, so removing the association check will fail the grader.
+- The command must match exactly, including the leading slash.
 
-## Recovery 🛟
-
-If rejected, confirm the actor association and PR context; labels never establish identity.
+</details>

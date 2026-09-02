@@ -2,28 +2,37 @@
 
 > **Lesson 1 · Governed corrections** · Step 2 of 10
 
-## Theory 🧠
+### 📖 Theory: A closed schema makes review possible
 
-A closed schema makes correction data reviewable and prevents hidden fields.
+Before automation edits instructions, the proposed change must be **data you can inspect**, not free-form prose. A JSON Schema gives every candidate the same shape: a stable ID, a category, a lifecycle state, provenance, and a fingerprint.
 
-## Activity ⌨️
+The schema is **closed** (`additionalProperties: false`), so nothing unexpected can ride along inside a candidate. Stable IDs and fingerprints are derived from the rule text, which means the same rule always produces the same identity and duplicates become detectable.
 
-1. Complete `schemas/candidate.schema.json` with stable IDs, categories, lifecycle states, provenance, fingerprints, and conditional `target_id`.
-2. Run `npm run check-step -- 2` and the relevant tests.
-3. Commit and push the change.
+> [!NOTE]
+> Provenance answers "who asked for this, and where?" Without it, a rule cannot be audited or rolled back later.
 
-## Actions trigger 🚦
+### ⌨️ Activity: Define the candidate contract
 
-Push a schema change.
+1. Open `schemas/candidate.schema.json`.
+2. Confirm required fields include `id`, `category`, `rule`, `rationale`, `scope`, `state`, `action`, `provenance`, `fingerprint`, and `created_at`.
+3. Confirm `additionalProperties` is `false` so unknown fields are rejected.
+4. Review the conditional rule that requires `target_id` for `supersede` and `revoke`.
+5. Run `npm run check-step -- 2` locally.
+6. Commit and push your change.
 
-## Grading check ✅
+### ✅ How this step is graded
 
-The grader checks required fields, enums, patterns, and `additionalProperties: false`.
+| | |
+|---|---|
+| 🚦 **Trigger** | Push a change to `schemas/candidate.schema.json`. |
+| 🔍 **Check** | The grader generates a candidate from the sample correction and validates it against your schema. |
+| 💬 **Feedback** | A failed run updates the exercise issue with the specific missing control and the file to fix. |
 
-## Targeted feedback 💬
+<details>
+<summary><b>Having trouble? 🤷</b></summary><br/>
 
-A failed **Step 2** run updates the exercise issue with the missing control and the relevant file.
+- Compare your schema with `test/fixtures/valid/correction.json`.
+- If validation fails, read the reported field path first; it names the exact property.
+- Keep the enums aligned with the categories and states in `.github/learning-config.yml`.
 
-## Recovery 🛟
-
-Compare the schema with the sample fixture and run `npm test`.
+</details>
