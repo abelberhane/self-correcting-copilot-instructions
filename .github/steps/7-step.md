@@ -2,28 +2,37 @@
 
 > **Lesson 1 · Governed corrections** · Step 7 of 10
 
-## Theory 🧠
+### 📖 Theory: Retire rules without erasing history
 
-Lifecycle states preserve history. Supersession replaces a rule; revocation disables it without deletion.
+Rules change. A rule may become obsolete, or turn out to be wrong. Deleting it destroys the reasoning trail, so this pipeline uses **lifecycle states** instead.
 
-## Activity ⌨️
+`supersede` marks the old rule as superseded and adds its replacement. `revoke` marks a rule revoked and stops applying it. Both keep the original entry, its provenance, and its audit record. Because these operations change existing guidance, they always go to human review.
 
-1. Submit `/copilot-learn` with `action: supersede` or `action: revoke` and an active `target_id`. Review the lifecycle diff.
-2. Run `npm run check-step -- 7` and the relevant tests.
-3. Commit and push the change.
+> [!NOTE]
+> A lifecycle action requires a `target_id` that is currently `active`. You cannot supersede something that was already retired.
 
-## Actions trigger 🚦
+### ⌨️ Activity: Transition a rule through its lifecycle
 
-Post a lifecycle correction or push its fixture.
+1. Choose an active rule ID from `.github/copilot-instructions.md`.
+2. Post a `/copilot-learn` correction using `action: supersede` or `action: revoke` with that `target_id`.
+3. Review the resulting diff and confirm the original rule is retained with a new state.
+4. Confirm a superseding rule is added as a separate entry.
+5. Run `npm run check-step -- 7` locally.
+6. Commit and push any changes.
 
-## Grading check ✅
+### ✅ How this step is graded
 
-The grader verifies only active targets can transition and history remains present.
+| | |
+|---|---|
+| 🚦 **Trigger** | Post a lifecycle correction, or push script and fixture changes. |
+| 🔍 **Check** | The grader confirms only an active target can transition and that history is preserved. |
+| 💬 **Feedback** | A failed run updates the exercise issue with the specific missing control and the file to fix. |
 
-## Targeted feedback 💬
+<details>
+<summary><b>Having trouble? 🤷</b></summary><br/>
 
-A failed **Step 7** run updates the exercise issue with the missing control and the relevant file.
+- Copy the stable ID exactly, including capitalization.
+- If the target is not active, the candidate is rejected by design.
+- Do not delete the retired rule; changing its state is the expected outcome.
 
-## Recovery 🛟
-
-Copy the exact stable ID and ensure the target is currently active.
+</details>

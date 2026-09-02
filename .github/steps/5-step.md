@@ -2,28 +2,37 @@
 
 > **Lesson 1 · Governed corrections** · Step 5 of 10
 
-## Theory 🧠
+### 📖 Theory: Most proposals should be rejected
 
-Deterministic validation must reject duplicates, contradictions, overfitting, injection, secrets, missing provenance, and governance changes.
+A safe pipeline is defined by what it refuses. Validation must deterministically reject secrets, prompt injection, duplicates, contradictions, overfit rules, missing provenance, and anything that tries to change governance.
 
-## Activity ⌨️
+That last category is the most important. A candidate must never be able to modify workflows, validators, `CODEOWNERS`, permissions, or the auto-merge policy. If instructions could rewrite their own guardrails, every other control becomes decorative.
 
-1. Run every unsafe fixture, then improve `validateCandidate` until each fails for the intended reason.
-2. Run `npm run check-step -- 5` and the relevant tests.
-3. Commit and push the change.
+> [!NOTE]
+> Each unsafe fixture in `test/fixtures/unsafe/` represents one real attack or mistake. They should all fail, each for its own specific reason.
 
-## Actions trigger 🚦
+### ⌨️ Activity: Prove unsafe corrections are refused
 
-Push validator or fixture changes, or update a candidate PR.
+1. Review the fixtures in `test/fixtures/unsafe/`.
+2. Open `validateCandidate` in `scripts/lib.js`.
+3. Confirm secrets, injection, and governance changes are each detected.
+4. Confirm duplicates, contradictions, overfit wording, and missing provenance are rejected.
+5. Run `npm test`, then `npm run check-step -- 5`.
+6. Commit and push your change.
 
-## Grading check ✅
+### ✅ How this step is graded
 
-The grader expects all unsafe fixtures to fail while the valid fixture passes.
+| | |
+|---|---|
+| 🚦 **Trigger** | Push validator, test, or fixture changes. |
+| 🔍 **Check** | The grader runs the full test suite, so the valid fixture must pass while every unsafe fixture fails. |
+| 💬 **Feedback** | A failed run updates the exercise issue with the specific missing control and the file to fix. |
 
-## Targeted feedback 💬
+<details>
+<summary><b>Having trouble? 🤷</b></summary><br/>
 
-A failed **Step 5** run updates the exercise issue with the missing control and the relevant file.
+- Read `docs/threat-model.md` to see which control each fixture targets.
+- Fix the specific validator that missed the case rather than adding a broad catch-all.
+- The failing test name tells you exactly which fixture slipped through.
 
-## Recovery 🛟
-
-Read `docs/threat-model.md`; fix the narrow validator instead of broad catch-all behavior.
+</details>

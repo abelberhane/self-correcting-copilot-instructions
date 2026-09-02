@@ -2,32 +2,37 @@
 
 > **Lesson 2 · Guarded automation** · Step 9 of 10
 
-## Theory 🧠
+### 📖 Theory: Auto-merge queues, it does not override
 
-Native auto-merge queues a PR and still honors branch protections, reviews, and checks. It is not a direct merge.
+Native auto-merge is often misunderstood. It does not merge immediately and it does not skip anything. It **queues** a pull request and waits for every required review and status check to pass.
 
-## Activity ⌨️
+That is why this is safe: branch protection remains the final gate. The evaluator revalidates the candidate on every update, confirms only allowed paths changed, applies the correct decision labels, and enables auto-merge only when the policy fully qualifies the change. Using `--admin`, or pushing to the default branch, would defeat the entire design.
 
-1. Complete `evaluate-instruction.yml` so it revalidates, labels, and calls `gh pr merge --auto --squash` only for policy-qualified PRs.
-2. Run `npm run check-step -- 9` and the relevant tests.
-3. Commit and push the change.
+> [!NOTE]
+> The evaluator runs on every pull request and passes instantly when there is no candidate, so requiring it never blocks ordinary work.
 
-## Actions trigger 🚦
+### ⌨️ Activity: Enable auto-merge behind the policy
 
-Update a candidate PR or push evaluator changes.
+1. Open `.github/workflows/evaluate-instruction.yml`.
+2. Confirm it revalidates the candidate and checks changed paths on every update.
+3. Confirm stale decision labels are replaced before new ones are applied.
+4. Confirm `gh pr merge --auto` runs only when the policy qualifies the candidate, with no `--admin` flag.
+5. Run `npm run check-step -- 9` locally.
+6. Commit and push your change.
 
-## Grading check ✅
+### ✅ How this step is graded
 
-The grader confirms no direct push, no admin bypass, least privilege, and required-check gating.
+| | |
+|---|---|
+| 🚦 **Trigger** | Push evaluator changes, or update a candidate pull request. |
+| 🔍 **Check** | The grader confirms auto-merge is policy-gated with no admin bypass and no direct default-branch push. |
+| 💬 **Feedback** | A failed run updates the exercise issue with the specific missing control and the file to fix. |
 
-## Targeted feedback 💬
+<details>
+<summary><b>Having trouble? 🤷</b></summary><br/>
 
-A failed **Step 9** run updates the exercise issue with the missing control and the relevant file.
+- If **Evaluate instruction candidate** is missing from **Add checks**, type the name exactly or open any pull request so it reports once.
+- If **Allow auto-merge** is greyed out, the repository is likely private on GitHub Free. Make it public or merge manually.
+- This step grades your evaluator logic, so you can pass it even when auto-merge is unavailable.
 
-## Recovery 🛟
-
-Enable repository auto-merge in settings; never add `--admin` or a direct default-branch push.
-
-If **Evaluate instruction candidate** does not appear in **Add checks**, type the name exactly rather than relying on search, or open any small pull request so it reports once and retry.
-
-If **Allow auto-merge** is greyed out, the repository is most likely **private on GitHub Free**, where auto-merge is unavailable. Make the repository public or use the fallback: this step is graded on your evaluator logic, so confirm the qualifying candidate is labeled `copilot-auto-merge-approved` and merge manually after required checks pass.
+</details>

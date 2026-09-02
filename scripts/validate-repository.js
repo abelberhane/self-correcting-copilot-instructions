@@ -17,6 +17,8 @@ for (const file of workflows) {
 }
 for (let step = 1; step <= 10; step++) {
   const contents = fs.readFileSync(`.github/steps/${step}-step.md`, 'utf8');
-  for (const heading of ['## Theory','## Activity','## Actions trigger','## Grading check','## Targeted feedback','## Recovery']) if (!contents.includes(heading)) throw new Error(`Step ${step} is missing ${heading}.`);
+  for (const heading of ['### 📖 Theory:', '### ⌨️ Activity:', '### ✅ How this step is graded', 'Having trouble?']) if (!contents.includes(heading)) throw new Error(`Step ${step} is missing "${heading}".`);
+  if (!/^# .+ Step \d+: /m.test(contents)) throw new Error(`Step ${step} is missing a titled heading.`);
+  if (!/^> \*\*Lesson [12] · /m.test(contents)) throw new Error(`Step ${step} is missing its lesson banner.`);
 }
 console.log(`Repository structure is valid (${required.length} required files).`);

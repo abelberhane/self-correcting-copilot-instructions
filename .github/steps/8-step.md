@@ -2,28 +2,37 @@
 
 > **Lesson 2 · Guarded automation** · Step 8 of 10
 
-## Theory 🧠
+### 📖 Theory: Automation needs a narrow, boring definition of safe
 
-Only narrow, unambiguous, non-governance candidates should qualify for automation.
+Auto-merge is only responsible if "low risk" is defined **deterministically**. No judgment calls, no model opinion: the same candidate must always receive the same classification.
 
-## Activity ⌨️
+This policy narrows automation to the least consequential changes. Governance-adjacent categories such as `ARCH`, `PROCESS`, and `SECURITY` are blocked outright. Long rules, repository-wide absolutes, and lifecycle changes are treated as at least medium risk, which routes them to a human.
 
-1. Set `.github/auto-merge-policy.yml` to low risk, allowed paths, blocked categories, max length, required checks, labels, and provenance controls. Then set `enabled: true`.
-2. Run `npm run check-step -- 8` and the relevant tests.
-3. Commit and push the change.
+> [!NOTE]
+> Anything ambiguous should be classified upward, not downward. Human review is the safe default, and automation is the exception.
 
-## Actions trigger 🚦
+### ⌨️ Activity: Define what qualifies for automation
 
-Push the policy change.
+1. Open `.github/auto-merge-policy.yml`.
+2. Confirm `allowed_risk` is `low` and `blocked_categories` includes `ARCH`, `PROCESS`, and `SECURITY`.
+3. Review `allowed_paths`, `required_labels`, and `required_checks`.
+4. Confirm `max_rule_length` keeps sweeping rules out of automation.
+5. Set `enabled: true`, then run `npm run check-step -- 8`.
+6. Commit and push your change.
 
-## Grading check ✅
+### ✅ How this step is graded
 
-The grader validates the policy schema and confirms medium/high risk remains human-reviewed.
+| | |
+|---|---|
+| 🚦 **Trigger** | Push a change to `.github/auto-merge-policy.yml`. |
+| 🔍 **Check** | The grader validates your policy against its schema and confirms risky categories stay in human review. |
+| 💬 **Feedback** | A failed run updates the exercise issue with the specific missing control and the file to fix. |
 
-## Targeted feedback 💬
+<details>
+<summary><b>Having trouble? 🤷</b></summary><br/>
 
-A failed **Step 8** run updates the exercise issue with the missing control and the relevant file.
+- A policy that allows medium or high risk will fail the grader.
+- Keep `allowed_paths` limited to instructions and candidate data.
+- Broad repository-wide rules are intentionally not low risk.
 
-## Recovery 🛟
-
-Keep ARCH, PROCESS, and SECURITY blocked; broad repository rules are not low risk.
+</details>

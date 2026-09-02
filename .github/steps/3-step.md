@@ -2,28 +2,37 @@
 
 > **Lesson 1 · Governed corrections** · Step 3 of 10
 
-## Theory 🧠
+### 📖 Theory: Treat every comment as untrusted input
 
-Treat comments as untrusted data. Never pass comment content to a shell, template evaluator, or dynamic code loader.
+A comment is attacker-controlled text. It must **never** reach a shell, a template evaluator, or dynamic code execution. This parser reads the comment as data and nothing else.
 
-## Activity ⌨️
+Strictness is a feature. The command must be the first line, each field must match a documented `key: value` pattern, duplicates are rejected, and unknown fields fail loudly. A precise error is safer and more teachable than a permissive parser that quietly guesses what someone meant.
 
-1. Implement or inspect `parseCorrection` in `scripts/lib.js`. Accept only the first-line command and documented `key: value` fields.
-2. Run `npm run check-step -- 3` and the relevant tests.
-3. Commit and push the change.
+> [!NOTE]
+> Rejecting an unknown field like `shell:` is what stops a crafted comment from smuggling extra instructions into the pipeline.
 
-## Actions trigger 🚦
+### ⌨️ Activity: Harden the correction parser
 
-Push parser or fixture changes.
+1. Open `scripts/lib.js` and find `parseCorrection`.
+2. Confirm the first line must be exactly `/copilot-learn`.
+3. Confirm only fields in `ALLOWED_FIELDS` are accepted.
+4. Confirm malformed lines and duplicate fields raise a clear error.
+5. Run `npm run check-step -- 3` locally.
+6. Commit and push your change.
 
-## Grading check ✅
+### ✅ How this step is graded
 
-Valid syntax passes; malformed lines, duplicates, and unknown fields fail with a precise message.
+| | |
+|---|---|
+| 🚦 **Trigger** | Push a change to `scripts/lib.js` or the test fixtures. |
+| 🔍 **Check** | The grader parses the valid correction successfully and confirms an unknown field is rejected. |
+| 💬 **Feedback** | A failed run updates the exercise issue with the specific missing control and the file to fix. |
 
-## Targeted feedback 💬
+<details>
+<summary><b>Having trouble? 🤷</b></summary><br/>
 
-A failed **Step 3** run updates the exercise issue with the missing control and the relevant file.
+- Use `.github/learning-config.yml` as the source of truth for allowed fields.
+- Run `npm test` to see which parsing case fails.
+- Do not add a catch-all branch; the grader expects unknown input to fail.
 
-## Recovery 🛟
-
-Use `.github/learning-config.yml` as the allowlist and run the parser tests.
+</details>
