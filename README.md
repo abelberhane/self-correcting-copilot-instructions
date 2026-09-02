@@ -11,23 +11,48 @@ Build a secure, auditable pipeline that turns explicit maintainer corrections in
 
 The instruction file has a maintainer-controlled section that automation cannot edit and a bounded learned-rules section managed through pull requests. Every rule has a stable ID, category, state, provenance, and fingerprint.
 
-## Start here
+## Before you start
+
+The local simulation needs only Node.js 20. The live GitHub exercise also needs a few repository settings so its workflows can open candidate pull requests and, in Lesson 2, queue safe pull requests for auto-merge.
+
+### Required for Lesson 1
+
+1. Open your repository on GitHub.
+2. Select **Settings** > **Actions** > **General**.
+3. Under **Workflow permissions**, select **Read and write permissions**.
+4. Select **Allow GitHub Actions to create and approve pull requests**.
+5. Select **Save**.
+
+These settings let the exercise create a reviewable instruction candidate branch and pull request. The workflow never pushes directly to the default branch.
+
+### Required for Lesson 2
+
+1. Select **Settings** > **General**.
+2. Under **Pull Requests**, select **Allow auto-merge**.
+3. Select **Settings** > **Branches** and edit or add the protection rule for your default branch.
+4. Enable **Require status checks to pass before merging**.
+5. Add **Evaluate instruction candidate** as a required check after it has run at least once.
+6. Keep any required reviews or other protections enabled.
+
+> [!NOTE]
+> If the check is not available yet, start the exercise and complete Lesson 1 first. After the evaluator runs once, return to branch protection and add it before Step 9.
+
+> [!IMPORTANT]
+> Auto-merge does not bypass branch protection. It only queues a qualifying low-risk pull request and waits for every required review and check.
+
+## Start the exercise
 
 [![Start the exercise](https://img.shields.io/badge/Start%20the%20exercise-Run%20Step%200-1f883d?logo=github)](../../actions/workflows/0-step.yml)
 
 1. Create a repository from this template or fork it.
-2. Enable repository auto-merge, require the **Evaluate instruction candidate** check on the default branch, and allow GitHub Actions to create pull requests.
-3. Select **Start the exercise** above, choose **Run workflow**, and open the issue created by Step 0.
-4. Follow the issue instructions. Each completed step posts the next activity and targeted recovery guidance.
+2. Complete the **Required for Lesson 1** settings above.
+3. Select **Start the exercise**, then select **Run workflow**.
+4. Open the issue created by Step 0.
+5. Follow the numbered instructions in that issue. Each successful check posts the next step; each failed check posts recovery guidance.
 
-## Lessons
+### Local-only option
 
-| Lesson | Steps | Outcome |
-|---|---:|---|
-| 1: Governed corrections | 1–7 | Parse, validate, review, merge, supersede, and revoke instruction candidates |
-| 2: Guarded automation | 8–10 | Classify deterministic low risk, enable native auto-merge, and prove unsafe inputs stay blocked |
-
-## Local deterministic simulation
+To explore the deterministic parser and safety checks without changing GitHub settings:
 
 ```bash
 npm ci
@@ -36,7 +61,14 @@ npm run validate
 npm run simulate
 ```
 
-No model API or secret is required. The simulation clock and fingerprints are deterministic.
+No model API, external service, or secret is required.
+
+## Lessons
+
+| Lesson | Steps | Outcome |
+|---|---:|---|
+| 1: Governed corrections | 1–7 | Parse, validate, review, merge, supersede, and revoke instruction candidates |
+| 2: Guarded automation | 8–10 | Classify deterministic low risk, enable native auto-merge, and prove unsafe inputs stay blocked |
 
 ## Reset or retry
 
