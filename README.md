@@ -54,7 +54,7 @@ GitHub offers two ways to protect a branch. Use whichever your repository shows.
 4. Under **Target branches**, select **Add target** > **Include default branch**. Without a target, GitHub warns that the ruleset does not target any resources.
 5. Leave **Bypass list** empty so no actor can skip these rules.
 6. Select **Require status checks to pass**.
-7. Select **Add checks**, then search for and add **Evaluate instruction candidate**.
+7. Select **Add checks**, then type `Evaluate instruction candidate` exactly and select it. If search returns nothing, typing the exact name still adds it.
 8. Select **Create** or **Save changes**.
 
 > [!TIP]
@@ -67,13 +67,16 @@ GitHub offers two ways to protect a branch. Use whichever your repository shows.
 
 1. Select **Add branch protection rule**, or edit the rule for your default branch.
 2. Select **Require status checks to pass before merging**.
-3. Search for and add **Evaluate instruction candidate**.
+3. Search for or type **Evaluate instruction candidate**, then add it.
 4. Select **Create** or **Save changes**.
 
 </details>
 
 > [!NOTE]
-> Seeing **No checks have been added** or an empty search? A check only becomes selectable after it has run once. Open any pull request so **Evaluate instruction candidate** reports at least once, then return here and add it.
+> **Search shows no results?** The picker only suggests checks it has seen run recently, and a squash merge can leave the default branch with no check history. Type the name exactly instead of relying on search, or open any small pull request so **Evaluate instruction candidate** reports once, then retry.
+
+> [!TIP]
+> The name must match the workflow job exactly, including capitalization: `Evaluate instruction candidate`.
 
 > [!IMPORTANT]
 > **Evaluate instruction candidate** runs on every pull request. It passes immediately when a pull request has no `copilot-instruction-candidate` label, so requiring it is safe and never blocks ordinary changes.

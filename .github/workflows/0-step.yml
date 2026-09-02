@@ -15,17 +15,26 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          set -euo pipefail
+          node scripts/list-labels.js > "$RUNNER_TEMP/labels.tsv"
           while IFS=$'\t' read -r name color description; do
+            [ -n "$name" ] || continue
             gh label create "$name" --color "$color" --description "$description" --force
-          done < <(node scripts/list-labels.js)
+          done < "$RUNNER_TEMP/labels.tsv"
+          echo "Provisioned $(wc -l < "$RUNNER_TEMP/labels.tsv" | tr -d ' ') labels."
       - id: issue
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          set -euo pipefail
           number=$(gh issue list --state open --search 'Self-correcting Copilot instructions in:title' --json number --jq '.[0].number // empty')
-          if [ -z "$number" ]; then number=$(gh issue create --title 'Self-correcting Copilot instructions' --body-file .github/markdown-templates/start.md --label copilot-correction); fi
-          echo "number=${number##*/}" >> "$GITHUB_OUTPUT"
-          gh issue edit "${number##*/}" --add-label skills-step-1
+          if [ -z "$number" ]; then
+            url=$(gh issue create --title 'Self-correcting Copilot instructions' --body-file .github/markdown-templates/start.md)
+            number=${url##*/}
+          fi
+          number=${number##*/}
+          echo "number=$number" >> "$GITHUB_OUTPUT"
+          gh issue edit "$number" --add-label skills-step-1
   post_next_step_content:
     needs: find_exercise
     runs-on: ubuntu-latest

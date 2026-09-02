@@ -28,4 +28,6 @@ A failed **Step 9** run updates the exercise issue with the missing control and 
 
 Enable repository auto-merge in settings; never add `--admin` or a direct default-branch push.
 
+If **Evaluate instruction candidate** does not appear in **Add checks**, type the name exactly rather than relying on search, or open any small pull request so it reports once and retry.
+
 If **Allow auto-merge** is greyed out, the repository is most likely **private on GitHub Free**, where auto-merge is unavailable. Make the repository public or use the fallback: this step is graded on your evaluator logic, so confirm the qualifying candidate is labeled `copilot-auto-merge-approved` and merge manually after required checks pass.
