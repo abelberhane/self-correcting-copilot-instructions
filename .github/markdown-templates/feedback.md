@@ -1,4 +1,13 @@
 <!-- skills-feedback -->
-## Step {{STEP}} needs attention
+## 🛟 Step {{STEP}} needs one more pass
 
-The deterministic grading check did not pass. Review `.github/steps/{{STEP}}-step.md`, inspect the failed Actions log, and use its Recovery section. Push a correction to retry.
+Nice effort — the deterministic check did not pass yet, so nothing was skipped.
+
+**Try this next**
+
+1. 🔍 Open the failed **Step {{STEP}}** run in the **Actions** tab and read the final error line.
+2. 📖 Re-read `.github/steps/{{STEP}}-step.md`, especially **Recovery**.
+3. ⌨️ Apply the fix, then commit and push again.
+
+> [!TIP]
+> The grading message names the exact missing control, so you can fix one specific thing instead of guessing.
