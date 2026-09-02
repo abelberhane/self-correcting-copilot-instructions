@@ -2,8 +2,6 @@
 
 Build a secure, auditable pipeline that turns explicit maintainer corrections into repository instruction pull requests, then safely enables low-risk auto-merge. This exercise automates **repository instructions**; it does not train Copilot or make Copilot self-learning.
 
-![A local self-modifying rules file that inspired this governed design](.github/images/self-correcting-rules-example.png)
-
 ## About this exercise
 
 - **Audience:** Developers and maintainers familiar with GitHub Actions and JavaScript
