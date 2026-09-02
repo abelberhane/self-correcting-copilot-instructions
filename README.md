@@ -42,11 +42,16 @@ GitHub offers two ways to protect a branch. Use whichever your repository shows.
 <summary><b>Rulesets</b> (Settings > Rules > Rulesets — newer experience)</summary>
 
 1. Select **New ruleset** > **New branch ruleset**, or edit an existing one.
-2. Set **Enforcement status** to **Active**.
-3. Under **Target branches**, add your default branch.
-4. Select **Require status checks to pass**.
-5. Select **Add checks**, then search for and add **Evaluate instruction candidate**.
-6. Select **Create** or **Save changes**.
+2. Enter a **Ruleset Name**, such as `Instruction candidates`.
+3. Set **Enforcement status** to **Active**. A ruleset left as **Disabled** is never applied.
+4. Under **Target branches**, select **Add target** > **Include default branch**. Without a target, GitHub warns that the ruleset does not target any resources.
+5. Leave **Bypass list** empty so no actor can skip these rules.
+6. Select **Require status checks to pass**.
+7. Select **Add checks**, then search for and add **Evaluate instruction candidate**.
+8. Select **Create** or **Save changes**.
+
+> [!TIP]
+> Both banners in a new ruleset are expected until you finish: **This ruleset does not target any resources** clears after step 4, and the **Disabled** badge clears after step 3.
 
 </details>
 
