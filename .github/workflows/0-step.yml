@@ -1,0 +1,43 @@
+name: Step 0
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+  issues: write
+jobs:
+  find_exercise:
+    runs-on: ubuntu-latest
+    outputs:
+      issue: ${{ steps.issue.outputs.number }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Provision exercise labels
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          while IFS=$'\t' read -r name color description; do
+            gh label create "$name" --color "$color" --description "$description" --force
+          done < <(node scripts/list-labels.js)
+      - id: issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          number=$(gh issue list --state open --search 'Self-correcting Copilot instructions in:title' --json number --jq '.[0].number // empty')
+          if [ -z "$number" ]; then number=$(gh issue create --title 'Self-correcting Copilot instructions' --body-file .github/markdown-templates/start.md --label copilot-correction); fi
+          echo "number=${number##*/}" >> "$GITHUB_OUTPUT"
+          gh issue edit "${number##*/}" --add-label skills-step-1
+  post_next_step_content:
+    needs: find_exercise
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE: ${{ needs.find_exercise.outputs.issue }}
+        run: |
+          marker='<!-- skills-step-0 -->'
+          body=$(printf '%s\n%s' "$marker" "$(cat .github/steps/1-step.md)")
+          id=$(gh api "repos/${{ github.repository }}/issues/$ISSUE/comments" --jq ".[] | select(.body | contains(\"$marker\")) | .id" | head -1)
+          if [ -n "$id" ]; then gh api --method PATCH "repos/${{ github.repository }}/issues/comments/$id" -f body="$body" >/dev/null; else gh issue comment "$ISSUE" --body "$body"; fi

@@ -1,0 +1,64 @@
+name: Step 2
+on:
+  push:
+    branches-ignore: [main]
+    paths: ['schemas/candidate.schema.json', '.github/workflows/2-step.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+  issues: write
+jobs:
+  find_exercise:
+    runs-on: ubuntu-latest
+    outputs:
+      issue: ${{ steps.issue.outputs.number }}
+    steps:
+      - id: issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: echo "number=$(gh issue list --state open --search 'Self-correcting Copilot instructions in:title' --json number --jq '.[0].number // empty')" >> "$GITHUB_OUTPUT"
+  check_step_work:
+    needs: find_exercise
+    if: needs.find_exercise.outputs.issue != ''
+    runs-on: ubuntu-latest
+    outputs:
+      passed: ${{ steps.grade.outcome == 'success' }}
+    steps:
+      - name: Gate current step
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE: ${{ needs.find_exercise.outputs.issue }}
+        run: gh issue view "$ISSUE" --json labels --jq '.labels[].name' | grep -Fx 'skills-step-2'
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - id: grade
+        continue-on-error: true
+        run: npm run check-step -- 2
+      - if: steps.grade.outcome != 'success'
+        run: exit 1
+  post_next_step_content:
+    needs: [find_exercise, check_step_work]
+    if: always() && needs.find_exercise.outputs.issue != '' && needs.check_step_work.result != 'skipped'
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+      - env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE: ${{ needs.find_exercise.outputs.issue }}
+          PASSED: ${{ needs.check_step_work.result == 'success' }}
+        run: |
+          marker='<!-- skills-step-2 -->'
+          if [ "$PASSED" = true ]; then
+            gh issue edit "$ISSUE" --remove-label skills-step-2 --add-label skills-step-3
+            body=$(printf '%s\n%s' "$marker" "$(cat .github/steps/3-step.md)")
+          else
+            body=$(printf '%s\n%s' "$marker" "$(sed 's/{{STEP}}/2/g' .github/markdown-templates/feedback.md)")
+          fi
+          id=$(gh api "repos/${{ github.repository }}/issues/$ISSUE/comments" --jq ".[] | select(.body | contains(\"$marker\")) | .id" | head -1)
+          if [ -n "$id" ]; then gh api --method PATCH "repos/${{ github.repository }}/issues/comments/$id" -f body="$body" >/dev/null; else gh issue comment "$ISSUE" --body "$body"; fi

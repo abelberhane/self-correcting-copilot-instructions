@@ -1,0 +1,57 @@
+name: Evaluate instruction candidate
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+    paths:
+      - .github/copilot-instructions.md
+      - data/candidates/**
+      - data/audit/**
+      - data/fingerprints/**
+permissions:
+  contents: read
+  pull-requests: write
+jobs:
+  evaluate:
+    name: Evaluate instruction candidate
+    if: contains(github.event.pull_request.labels.*.name, 'copilot-instruction-candidate')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: npm }
+      - run: npm ci
+      - name: Identify exactly one changed candidate
+        env: { GH_TOKEN: '${{ github.token }}' }
+        run: |
+          gh pr diff '${{ github.event.pull_request.number }}' --name-only > "$RUNNER_TEMP/paths.txt"
+          xargs node scripts/check-paths.js < "$RUNNER_TEMP/paths.txt"
+          grep '^data/candidates/[^/]*\.json$' "$RUNNER_TEMP/paths.txt" > "$RUNNER_TEMP/candidates.txt" || true
+          test "$(wc -l < "$RUNNER_TEMP/candidates.txt" | tr -d ' ')" = 1
+          cp "$(cat "$RUNNER_TEMP/candidates.txt")" "$RUNNER_TEMP/candidate.json"
+      - name: Revalidate rendered instructions
+        run: |
+          git show '${{ github.event.pull_request.base.sha }}:.github/copilot-instructions.md' > "$RUNNER_TEMP/base-instructions.md"
+          node scripts/render-instructions.js "$RUNNER_TEMP/base-instructions.md" "$RUNNER_TEMP/candidate.json" "$RUNNER_TEMP/expected.md"
+          cmp --silent "$RUNNER_TEMP/expected.md" .github/copilot-instructions.md
+      - run: npm test
+      - name: Revalidate policy and candidate
+        id: policy
+        env:
+          LABELS: ${{ toJSON(github.event.pull_request.labels.*.name) }}
+        run: |
+          jq -n --argjson labels "$LABELS" --rawfile paths "$RUNNER_TEMP/paths.txt" '{labels:$labels,paths:($paths | split("\n") | map(select(length > 0)))}' > "$RUNNER_TEMP/context.json"
+          node scripts/evaluate-instruction.js "$RUNNER_TEMP/candidate.json" "$RUNNER_TEMP/context.json" > "$RUNNER_TEMP/evaluation.json"
+          echo "eligible=$(jq -r .autoMergeEligible "$RUNNER_TEMP/evaluation.json")" >> "$GITHUB_OUTPUT"
+      - name: Replace stale decision labels
+        env: { GH_TOKEN: '${{ github.token }}' }
+        run: |
+          gh pr edit '${{ github.event.pull_request.number }}' --remove-label copilot-low-risk --remove-label copilot-auto-merge-approved --remove-label copilot-needs-human-review 2>/dev/null || true
+          if [ '${{ steps.policy.outputs.eligible }}' = true ]; then
+            gh pr edit '${{ github.event.pull_request.number }}' --add-label copilot-low-risk --add-label copilot-auto-merge-approved
+          else
+            gh pr edit '${{ github.event.pull_request.number }}' --add-label copilot-needs-human-review
+          fi
+      - name: Enable guarded auto-merge
+        if: steps.policy.outputs.eligible == 'true'
+        env: { GH_TOKEN: '${{ github.token }}' }
+        run: gh pr merge '${{ github.event.pull_request.number }}' --auto --squash

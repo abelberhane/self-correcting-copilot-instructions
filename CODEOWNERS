@@ -1,0 +1,8 @@
+# Governance files require explicit maintainer review.
+.github/copilot-instructions.md @OWNER
+.github/learning-config.yml @OWNER
+.github/auto-merge-policy.yml @OWNER
+.github/workflows/ @OWNER
+schemas/ @OWNER
+scripts/ @OWNER
+CODEOWNERS @OWNER
