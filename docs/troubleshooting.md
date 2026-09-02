@@ -12,6 +12,8 @@
 
 - **Candidate PR is not created:** Open **Settings** > **Actions** > **General**, select **Read and write permissions**, enable **Allow GitHub Actions to create and approve pull requests**, and save.
 - **Auto-merge option is unavailable:** Open **Settings** > **General** and enable **Allow auto-merge** under **Pull Requests**.
+- **Allow auto-merge is greyed out on a new repository:** Expected. Create the active branch ruleset or classic protection rule for the default branch first, then reload the page. Select **Why is this option disabled?** to see the specific reason for your repository.
+- **Organization disables auto-merge entirely:** Continue without it. Steps 8–10 grade your policy, evaluator, and tests. Verify the evaluator labels a safe candidate `copilot-auto-merge-approved` and an unsafe candidate `copilot-needs-human-review`, then merge manually after checks pass.
 - **Required check is not listed:** A check is only selectable after it runs once. Complete Lesson 1, then add **Evaluate instruction candidate** in **Settings** > **Rules** > **Rulesets** (**Require status checks to pass**) or **Settings** > **Branches** (**Require status checks to pass before merging**).
 - **"This ruleset does not target any resources":** Add a target under **Target branches** with **Add target** > **Include default branch**.
 - **Ruleset shows a Disabled badge:** Set **Enforcement status** to **Active**, then save. Disabled rulesets never apply.

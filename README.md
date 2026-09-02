@@ -34,9 +34,15 @@ These settings let the exercise create a reviewable instruction candidate branch
 1. Select **Settings** > **General**.
 2. Under **Pull Requests**, select **Allow auto-merge**.
 
+> [!NOTE]
+> **Is Allow auto-merge greyed out?** On a brand-new repository this is normal. The option unlocks once the repository has a protected default branch with at least one merge requirement, and it can also be restricted by organization policy. Set up the ruleset in the next section first, then return to this checkbox.
+
+> [!TIP]
+> You can still finish Lesson 2 without it. Steps 8–10 are graded on your policy, evaluator, and test work, not on an actual merge. If auto-merge stays unavailable, confirm the evaluator applies `copilot-auto-merge-approved` to a safe candidate and `copilot-needs-human-review` to an unsafe one, then merge manually.
+
 **2. Require the evaluator check**
 
-GitHub offers two ways to protect a branch. Use whichever your repository shows.
+GitHub offers two ways to protect a branch. Use whichever your repository shows. Doing this first is also what unlocks the auto-merge checkbox above.
 
 <details>
 <summary><b>Rulesets</b> (Settings > Rules > Rulesets — newer experience)</summary>

@@ -27,3 +27,5 @@ A failed **Step 9** run updates the exercise issue with the missing control and 
 ## Recovery 🛟
 
 Enable repository auto-merge in settings; never add `--admin` or a direct default-branch push.
+
+If **Allow auto-merge** is greyed out, create the active default-branch ruleset first, then reload **Settings** > **General**. If your organization blocks auto-merge, you can still pass this step: the grader checks that your evaluator policy-gates `gh pr merge --auto` without admin bypass, so verify the labeling decision and merge manually.
