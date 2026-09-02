@@ -121,12 +121,33 @@ flowchart LR
   H --> I["✅ Branch protection and required checks"]
 ```
 
-## 🗺️ Lessons
+## 🗺️ Lessons and steps
 
-| Lesson | Steps | What you build |
-|---|---:|---|
-| 🧱 **1 · Governed corrections** | 1–7 | Parse, validate, review, merge, supersede, and revoke instruction candidates |
-| 🤖 **2 · Guarded automation** | 8–10 | Classify deterministic low risk, enable native auto-merge, and prove unsafe inputs stay blocked |
+Each step is graded automatically. When a check passes, the exercise issue posts the next step.
+
+### 🧱 Lesson 1 · Governed corrections (steps 1–7)
+
+Turn a trusted maintainer correction into a reviewed instruction pull request.
+
+| Step | Title | What you will do |
+|---:|---|---|
+| 1 | 🔐 Configure trusted actors and explicit signals | Decide who may submit corrections, and require the exact `/copilot-learn` signal on a Copilot-associated pull request |
+| 2 | 🧾 Complete the candidate schema | Define the closed data shape for a rule: stable ID, category, lifecycle state, provenance, and fingerprint |
+| 3 | 🔍 Parse a strict command | Read the comment as untrusted data, accept only documented fields, and reject malformed or unknown input |
+| 4 | 🔀 Generate an instruction-update PR | Render the rule inside the learned-rules boundary, write audit records, and open a candidate pull request |
+| 5 | 🛡️ Block unsafe candidates | Reject secrets, prompt injection, duplicates, contradictions, overfitting, and governance changes |
+| 6 | 👀 Review and merge the candidate | Inspect the diff, provenance, and audit trail, then merge the candidate after checks pass |
+| 7 | ♻️ Supersede or revoke a rule | Retire a rule without deleting history by transitioning it to superseded or revoked |
+
+### 🤖 Lesson 2 · Guarded automation (steps 8–10)
+
+Let only provably low-risk candidates merge automatically, without weakening protections.
+
+| Step | Title | What you will do |
+|---:|---|---|
+| 8 | ⚖️ Configure deterministic low-risk policy | Set deterministic rules for risk, allowed paths, blocked categories, and required labels and checks |
+| 9 | 🤖 Enable guarded PR auto-merge | Queue only policy-qualified pull requests with native auto-merge, never bypassing required checks |
+| 10 | 🧪 Verify safe and unsafe fixtures | Prove the valid correction passes and every unsafe fixture is still blocked |
 
 ## 🔄 Reset or retry
 
