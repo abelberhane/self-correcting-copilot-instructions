@@ -1,0 +1,19 @@
+{
+  "name": "self-correcting-copilot-instructions",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "ajv": "8.17.1",
+    "ajv-formats": "3.0.1",
+    "yaml": "2.8.1"
+  },
+  "description": "A deterministic GitHub Skills exercise for governed Copilot instruction updates.",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "test": "node --test",
+    "validate": "node scripts/validate-repository.js",
+    "simulate": "node scripts/simulate.js",
+    "check-step": "node scripts/check-step.js"
+  },
+  "license": "MIT"
+}

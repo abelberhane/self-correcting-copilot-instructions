@@ -1,0 +1,55 @@
+name: Propose instruction
+on:
+  issue_comment:
+    types: [created]
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+jobs:
+  propose:
+    if: >-
+      github.event.issue.pull_request &&
+      startsWith(github.event.comment.body, '/copilot-learn') &&
+      github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: npm }
+      - run: npm ci
+      - name: Build sanitized event
+        env:
+          BODY: ${{ github.event.comment.body }}
+          ACTOR: ${{ github.actor }}
+          ASSOCIATION: ${{ github.event.comment.author_association }}
+          COMMENT_ID: ${{ github.event.comment.id }}
+          PR_NUMBER: ${{ github.event.issue.number }}
+          REPOSITORY: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          labels=$(gh pr view "$PR_NUMBER" --json labels --jq '[.labels[].name]')
+          author=$(gh pr view "$PR_NUMBER" --json author --jq '.author.login')
+          jq -n --arg repository "$REPOSITORY" --arg body "$BODY" --arg actor "$ACTOR" --arg association "$ASSOCIATION" --argjson comment "$COMMENT_ID" --argjson pr "$PR_NUMBER" --arg author "$author" --argjson labels "$labels" '{repository:$repository,body:$body,comment_id:$comment,actor:{login:$actor,association:$association},pull_request:{number:$pr,author:$author,labels:$labels}}' > "$RUNNER_TEMP/event.json"
+          node scripts/propose-instruction.js "$RUNNER_TEMP/event.json" "$RUNNER_TEMP/candidate.json"
+      - name: Create isolated candidate branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+          COMMENT_ID: ${{ github.event.comment.id }}
+        run: |
+          id=$(jq -r .id "$RUNNER_TEMP/candidate.json")
+          branch="copilot-instruction/$id-$COMMENT_ID"
+          git switch -c "$branch"
+          mkdir -p data/candidates data/audit data/fingerprints
+          cp "$RUNNER_TEMP/candidate.json" "data/candidates/$id.json"
+          jq -n --arg id "$id" --arg fingerprint "$(jq -r .fingerprint "$RUNNER_TEMP/candidate.json")" '{candidate_id:$id,fingerprint:$fingerprint}' > "data/fingerprints/$id.json"
+          node scripts/audit.js "$RUNNER_TEMP/candidate.json" proposed "data/audit/$id.jsonl"
+          node scripts/render-instructions.js .github/copilot-instructions.md "$RUNNER_TEMP/candidate.json" "$RUNNER_TEMP/instructions.md"
+          mv "$RUNNER_TEMP/instructions.md" .github/copilot-instructions.md
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add .github/copilot-instructions.md data
+          git commit -m "Propose learned instruction $id"
+          git push origin "$branch"
+          url=$(gh pr create --base '${{ github.event.repository.default_branch }}' --head "$branch" --title "Instruction candidate: $id" --body "Validated candidate from #${{ github.event.issue.number }}, comment $COMMENT_ID. Revalidation is required after every update." --label copilot-instruction-candidate --label copilot-authored)
+          gh issue comment '${{ github.event.issue.number }}' --body "Created instruction candidate PR: $url"
