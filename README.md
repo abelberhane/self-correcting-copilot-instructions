@@ -29,18 +29,42 @@ These settings let the exercise create a reviewable instruction candidate branch
 
 ### 🤖 Required for Lesson 2
 
+**1. Allow auto-merge**
+
 1. Select **Settings** > **General**.
 2. Under **Pull Requests**, select **Allow auto-merge**.
-3. Select **Settings** > **Branches** and edit or add the protection rule for your default branch.
-4. Enable **Require status checks to pass before merging**.
-5. Add **Evaluate instruction candidate** as a required check after it has run at least once.
-6. Keep any required reviews or other protections enabled.
+
+**2. Require the evaluator check**
+
+GitHub offers two ways to protect a branch. Use whichever your repository shows.
+
+<details>
+<summary><b>Rulesets</b> (Settings > Rules > Rulesets — newer experience)</summary>
+
+1. Select **New ruleset** > **New branch ruleset**, or edit an existing one.
+2. Set **Enforcement status** to **Active**.
+3. Under **Target branches**, add your default branch.
+4. Select **Require status checks to pass**.
+5. Select **Add checks**, then search for and add **Evaluate instruction candidate**.
+6. Select **Create** or **Save changes**.
+
+</details>
+
+<details>
+<summary><b>Classic branch protection</b> (Settings > Branches)</summary>
+
+1. Select **Add branch protection rule**, or edit the rule for your default branch.
+2. Select **Require status checks to pass before merging**.
+3. Search for and add **Evaluate instruction candidate**.
+4. Select **Create** or **Save changes**.
+
+</details>
 
 > [!NOTE]
-> If the check is not available yet, start the exercise and complete Lesson 1 first. After the evaluator runs once, return to branch protection and add it before Step 9.
+> Seeing **No checks have been added** or an empty search? A check only becomes selectable after it has run once. Complete Lesson 1 so **Evaluate instruction candidate** runs on your first candidate pull request, then return here before Step 9.
 
 > [!IMPORTANT]
-> Auto-merge does not bypass branch protection. It only queues a qualifying low-risk pull request and waits for every required review and check.
+> Auto-merge does not bypass these rules. It only queues a qualifying low-risk pull request and waits for every required review and check.
 
 ## 🚀 Start the exercise
 
