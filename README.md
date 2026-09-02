@@ -10,6 +10,7 @@ Build a secure, auditable pipeline that turns explicit maintainer corrections in
 | 🎯 **Goal** | Implement candidate validation, rule lifecycle, risk policy, and guarded auto-merge |
 | ⏱️ **Duration** | 45–60 minutes across two lessons |
 | ✅ **Prerequisites** | A GitHub account, Actions enabled, pull request permissions, and Node.js 20 for local validation |
+| 🌐 **Recommended** | A **public** repository, so auto-merge is available in Lesson 2 |
 
 The instruction file has a maintainer-controlled section that automation cannot edit and a bounded learned-rules section managed through pull requests. Every rule has a stable ID, category, state, provenance, and fingerprint.
 
@@ -34,9 +35,15 @@ These settings let the exercise create a reviewable instruction candidate branch
 1. Select **Settings** > **General**.
 2. Under **Pull Requests**, select **Allow auto-merge**.
 
+> [!IMPORTANT]
+> **Is Allow auto-merge greyed out?** Auto-merge is not available for **private repositories on GitHub Free**. Make the repository **public** (recommended for this exercise), upgrade the plan, or use the fallback below. Organization policy can also disable it.
+
+> [!TIP]
+> **No auto-merge? You can still finish Lesson 2.** Steps 8–10 are graded on your policy, evaluator, and tests — not on an actual merge. The evaluator labels a qualifying candidate `copilot-auto-merge-approved`, explains that auto-merge is unavailable, and you merge manually once required checks pass.
+
 **2. Require the evaluator check**
 
-GitHub offers two ways to protect a branch. Use whichever your repository shows.
+GitHub offers two ways to protect a branch. Use whichever your repository shows. Doing this first is also what unlocks the auto-merge checkbox above.
 
 <details>
 <summary><b>Rulesets</b> (Settings > Rules > Rulesets — newer experience)</summary>
@@ -66,7 +73,10 @@ GitHub offers two ways to protect a branch. Use whichever your repository shows.
 </details>
 
 > [!NOTE]
-> Seeing **No checks have been added** or an empty search? A check only becomes selectable after it has run once. Complete Lesson 1 so **Evaluate instruction candidate** runs on your first candidate pull request, then return here before Step 9.
+> Seeing **No checks have been added** or an empty search? A check only becomes selectable after it has run once. Open any pull request so **Evaluate instruction candidate** reports at least once, then return here and add it.
+
+> [!IMPORTANT]
+> **Evaluate instruction candidate** runs on every pull request. It passes immediately when a pull request has no `copilot-instruction-candidate` label, so requiring it is safe and never blocks ordinary changes.
 
 > [!IMPORTANT]
 > Auto-merge does not bypass these rules. It only queues a qualifying low-risk pull request and waits for every required review and check.
