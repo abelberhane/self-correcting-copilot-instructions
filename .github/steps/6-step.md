@@ -1,6 +1,6 @@
-# 👀 Step 6: Review and merge the candidate
+## Step 6: Review and merge the candidate
 
-> **Lesson 1 · Governed corrections** · Step 6 of 10
+> **Lesson 1 of 2 · Governed corrections** · Step 6 of 10
 
 ### 📖 Theory: Human review is the default
 
@@ -14,19 +14,25 @@ A good review reads four things: the rendered rule, the provenance link back to 
 ### ⌨️ Activity: Review and merge an instruction candidate
 
 1. Open the candidate pull request created by the pipeline.
-2. Confirm only the learned-rules section changed in `.github/copilot-instructions.md`.
-3. Follow the provenance link back to the original correction comment.
-4. Confirm the candidate and audit files were added.
-5. Merge the pull request once required checks pass.
-6. Run `npm run check-step -- 6` locally.
 
-### ✅ How this step is graded
+1. In the **Files changed** tab, confirm only the learned-rules section of `.github/copilot-instructions.md` changed.
 
-| | |
-|---|---|
-| 🚦 **Trigger** | Merge the candidate pull request, or push instruction and data changes. |
-| 🔍 **Check** | The grader confirms an active learned rule exists with complete provenance inside the boundary markers. |
-| 💬 **Feedback** | A failed run updates the exercise issue with the specific missing control and the file to fix. |
+1. Follow the provenance link back to the original correction comment.
+
+1. Confirm the candidate and audit files were added under `data/`.
+
+1. Merge the pull request once required checks pass.
+
+1. Confirm the merged result on your branch, then commit and push.
+
+   ```bash
+   git pull --rebase origin main
+   npm run check-step -- 6
+   git commit --allow-empty -m "Review and merge the candidate"
+   git push
+   ```
+
+1. Mona will check your work and share the next step.
 
 <details>
 <summary><b>Having trouble? 🤷</b></summary><br/>

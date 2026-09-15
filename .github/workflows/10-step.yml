@@ -1,64 +1,149 @@
 name: Step 10
+
 on:
   push:
-    branches-ignore: [main]
-    paths: ['test/**', 'scripts/**', '.github/workflows/10-step.yml']
+    # Exercise workflows stay disabled until the previous step enables them,
+    # so this trigger only fires while step 10 is the active step.
+    branches-ignore:
+      - main
   workflow_dispatch:
+
 permissions:
   contents: read
+  actions: write
   issues: write
+
+env:
+  REVIEW_FILE: ".github/steps/x-review.md"
+
 jobs:
   find_exercise:
-    runs-on: ubuntu-latest
-    outputs:
-      issue: ${{ steps.issue.outputs.number }}
-    steps:
-      - id: issue
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: echo "number=$(gh issue list --state open --search 'Self-correcting Copilot instructions in:title' --json number --jq '.[0].number // empty')" >> "$GITHUB_OUTPUT"
+    name: Find Exercise Issue
+    uses: skills/exercise-toolkit/.github/workflows/find-exercise-issue.yml@v0.9.1
+
   check_step_work:
-    needs: find_exercise
-    if: needs.find_exercise.outputs.issue != ''
+    name: Check step work
     runs-on: ubuntu-latest
-    outputs:
-      passed: ${{ steps.grade.outcome == 'success' }}
+    needs: [find_exercise]
+    env:
+      ISSUE_REPOSITORY: ${{ github.repository }}
+      ISSUE_NUMBER: ${{ needs.find_exercise.outputs.issue-number }}
+
     steps:
-      - name: Gate current step
-        env:
-          GH_TOKEN: ${{ github.token }}
-          ISSUE: ${{ needs.find_exercise.outputs.issue }}
-        run: gh issue view "$ISSUE" --json labels --jq '.labels[].name' | grep -Fx 'skills-step-10'
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Get response templates
+        uses: actions/checkout@v6
+        with:
+          repository: skills/exercise-toolkit
+          path: exercise-toolkit
+          ref: v0.9.1
+
+      - name: Find last comment
+        id: find-last-comment
+        uses: peter-evans/find-comment@v3
+        with:
+          repository: ${{ env.ISSUE_REPOSITORY }}
+          issue-number: ${{ env.ISSUE_NUMBER }}
+          direction: last
+
+      - name: Update comment - checking work
+        uses: GrantBirki/comment@v2.1.1
+        with:
+          repository: ${{ env.ISSUE_REPOSITORY }}
+          issue-number: ${{ env.ISSUE_NUMBER }}
+          comment-id: ${{ steps.find-last-comment.outputs.comment-id }}
+          file: exercise-toolkit/markdown-templates/step-feedback/checking-work.md
+          edit-mode: replace
+
+      # START: Check practical exercise
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
-      - run: npm ci
-      - id: grade
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check step 10
+        id: check-step
         continue-on-error: true
         run: npm run check-step -- 10
-      - if: steps.grade.outcome != 'success'
+
+      - name: Update comment - step results
+        uses: GrantBirki/comment@v2.1.1
+        with:
+          repository: ${{ env.ISSUE_REPOSITORY }}
+          issue-number: ${{ env.ISSUE_NUMBER }}
+          comment-id: ${{ steps.find-last-comment.outputs.comment-id }}
+          edit-mode: replace
+          file: exercise-toolkit/markdown-templates/step-feedback/step-results-table.md
+          vars: |
+            step_number: 10
+            results_table:
+              - description: "The full test suite and repository structure validation pass"
+                passed: ${{ steps.check-step.outcome == 'success' }}
+            tips:
+              - "Keep this suite green as you extend the exercise. New risks should arrive with new fixtures."
+              - "The workflow log for this run prints the exact assertion that failed."
+
+      # END: Check practical exercise
+
+      - name: Fail job if check failed
+        if: ${{ steps.check-step.outcome != 'success' }}
         run: exit 1
-  post_next_step_content:
+
+  post_review_content:
+    name: Post review content
     needs: [find_exercise, check_step_work]
-    if: always() && needs.find_exercise.outputs.issue != '' && needs.check_step_work.result != 'skipped'
     runs-on: ubuntu-latest
-    permissions:
-      issues: write
+    env:
+      ISSUE_REPOSITORY: ${{ github.repository }}
+      ISSUE_NUMBER: ${{ needs.find_exercise.outputs.issue-number }}
+
     steps:
-      - uses: actions/checkout@v4
-      - env:
-          GH_TOKEN: ${{ github.token }}
-          ISSUE: ${{ needs.find_exercise.outputs.issue }}
-          PASSED: ${{ needs.check_step_work.result == 'success' }}
-        run: |
-          marker='<!-- skills-step-10 -->'
-          if [ "$PASSED" = true ]; then
-            gh issue edit "$ISSUE" --remove-label skills-step-10 --add-label copilot-auto-merge-approved
-            body=$(printf '%s\n%s' "$marker" "$(cat .github/markdown-templates/complete.md)")
-          else
-            body=$(printf '%s\n%s' "$marker" "$(sed 's/{{STEP}}/10/g' .github/markdown-templates/feedback.md)")
-          fi
-          id=$(gh api "repos/${{ github.repository }}/issues/$ISSUE/comments" --jq ".[] | select(.body | contains(\"$marker\")) | .id" | head -1)
-          if [ -n "$id" ]; then gh api --method PATCH "repos/${{ github.repository }}/issues/comments/$id" -f body="$body" >/dev/null; else gh issue comment "$ISSUE" --body "$body"; fi
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Get response templates
+        uses: actions/checkout@v6
+        with:
+          repository: skills/exercise-toolkit
+          path: exercise-toolkit
+          ref: v0.9.1
+
+      - name: Create comment - step finished - final review next
+        uses: GrantBirki/comment@v2.1.1
+        with:
+          repository: ${{ env.ISSUE_REPOSITORY }}
+          issue-number: ${{ env.ISSUE_NUMBER }}
+          file: exercise-toolkit/markdown-templates/step-feedback/lesson-review.md
+
+      - name: Create comment - add review content
+        uses: GrantBirki/comment@v2.1.1
+        with:
+          repository: ${{ env.ISSUE_REPOSITORY }}
+          issue-number: ${{ env.ISSUE_NUMBER }}
+          file: ${{ env.REVIEW_FILE }}
+          vars: |
+            login: ${{ github.actor }}
+            full_repo_name: ${{ github.repository }}
+
+      - name: Disable current workflow
+        run: gh workflow disable "${{ github.workflow }}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  finish_exercise:
+    name: Finish Exercise
+    needs: [find_exercise, post_review_content]
+    uses: skills/exercise-toolkit/.github/workflows/finish-exercise.yml@v0.9.1
+    with:
+      issue-url: ${{ needs.find_exercise.outputs.issue-url }}
+      exercise-title: "Self-correcting Copilot instructions"
+      # Step 9 protects the default branch with a required status check, so the
+      # toolkit must not try to push a congratulations commit straight to `main`.
+      update-readme-with-congratulations: false

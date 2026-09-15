@@ -14,4 +14,3 @@ function unquote(value) { return value.trim().replace(/^["']|["']$/g, ''); }
 
 if (!labels.length) { console.error('No labels found in .github/labels.yml'); process.exit(1); }
 for (const label of labels) console.log(`${label.name}\t${label.color || 'ededed'}\t${label.description || ''}`);
-for (let step = 1; step <= 10; step++) console.log(`skills-step-${step}\tD4C5F9\tCurrent GitHub Skills exercise step ${step}`);

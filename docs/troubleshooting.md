@@ -10,8 +10,11 @@
 
 ## Starting the exercise
 
-- **Step 0 fails with "could not add label":** The exercise labels were not created yet. Re-run **Step 0**; it provisions all labels first and fails loudly if that step does not succeed.
-- **Step 0 cannot create labels:** Confirm **Settings** > **Actions** > **General** uses **Read and write permissions**.
+- **Nothing happened after copying the exercise:** **Step 0** runs automatically on the first push to `main`. Open the **Actions** tab and confirm the **Step 0** run succeeded, then refresh the repository home page.
+- **Step 0 fails with "could not add label":** The exercise labels were not created. Confirm **Settings** > **Actions** > **General** uses **Read and write permissions**, then re-run **Step 0** from the **Actions** tab.
+- **A step workflow never runs:** Only one step workflow is enabled at a time. Each step disables itself and enables the next one when it passes. Open the **Actions** tab, confirm the expected **Step N** workflow is enabled, and re-run it with **Run workflow** if needed.
+- **Pushing does not trigger the current step:** Step workflows ignore `main`. Work on a branch, for example `build-the-pipeline`, and push there.
+- **You want to restart:** Close the exercise issue, revert your changes, then enable and run **Step 0** from the **Actions** tab. Audit entries are append-only, so revoke or supersede rules instead of deleting history.
 
 ## Repository setup problems
 

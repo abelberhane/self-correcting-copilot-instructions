@@ -1,6 +1,6 @@
-# 🧪 Step 10: Verify safe and unsafe fixtures
+## Step 10: Verify safe and unsafe fixtures
 
-> **Lesson 2 · Guarded automation** · Step 10 of 10
+> **Lesson 2 of 2 · Guarded automation** · Step 10 of 10
 
 ### 📖 Theory: Prove both paths, not just the happy one
 
@@ -13,20 +13,35 @@ Everything runs deterministically. There is no model call, no network dependency
 
 ### ⌨️ Activity: Verify the complete pipeline
 
-1. Run `npm test` and confirm every test passes.
-2. Run `npm run validate` to check repository structure and workflow safety.
-3. Run `npm run simulate` to inspect the deterministic candidate output.
-4. Confirm each fixture in `test/fixtures/unsafe/` is still rejected.
-5. Run `npm run check-step -- 10` locally.
-6. Commit and push your change.
+1. Run the full test suite and confirm every test passes.
 
-### ✅ How this step is graded
+   ```bash
+   npm test
+   ```
 
-| | |
-|---|---|
-| 🚦 **Trigger** | Push test, fixture, or script changes. |
-| 🔍 **Check** | The final grader runs the full suite and repository validation, then posts your completion summary. |
-| 💬 **Feedback** | A failed run updates the exercise issue with the specific missing control and the file to fix. |
+1. Check repository structure and workflow safety.
+
+   ```bash
+   npm run validate
+   ```
+
+1. Inspect the deterministic candidate output.
+
+   ```bash
+   npm run simulate
+   ```
+
+1. Confirm each fixture in `test/fixtures/unsafe/` is still rejected.
+
+1. Run the final grader, then commit and push.
+
+   ```bash
+   npm run check-step -- 10
+   git commit --allow-empty -am "Verify safe and unsafe fixtures"
+   git push
+   ```
+
+1. Mona will check your work and close out the exercise. 🎉
 
 <details>
 <summary><b>Having trouble? 🤷</b></summary><br/>

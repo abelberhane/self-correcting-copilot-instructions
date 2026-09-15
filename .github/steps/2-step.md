@@ -1,6 +1,6 @@
-# 🧾 Step 2: Complete the candidate schema
+## Step 2: Complete the candidate schema
 
-> **Lesson 1 · Governed corrections** · Step 2 of 10
+> **Lesson 1 of 2 · Governed corrections** · Step 2 of 10
 
 ### 📖 Theory: A closed schema makes review possible
 
@@ -8,25 +8,35 @@ Before automation edits instructions, the proposed change must be **data you can
 
 The schema is **closed** (`additionalProperties: false`), so nothing unexpected can ride along inside a candidate. Stable IDs and fingerprints are derived from the rule text, which means the same rule always produces the same identity and duplicates become detectable.
 
+| Field group | Purpose |
+| --- | --- |
+| `id`, `fingerprint` | Stable identity derived from rule text, so duplicates are detectable |
+| `category`, `scope` | Classification that later drives risk evaluation |
+| `state`, `action` | Lifecycle position: `proposed`, `active`, `superseded`, `revoked`, `blocked` |
+| `provenance`, `created_at` | Who asked, where, and when, so the rule can be audited and rolled back |
+
 > [!NOTE]
 > Provenance answers "who asked for this, and where?" Without it, a rule cannot be audited or rolled back later.
 
 ### ⌨️ Activity: Define the candidate contract
 
 1. Open `schemas/candidate.schema.json`.
-2. Confirm required fields include `id`, `category`, `rule`, `rationale`, `scope`, `state`, `action`, `provenance`, `fingerprint`, and `created_at`.
-3. Confirm `additionalProperties` is `false` so unknown fields are rejected.
-4. Review the conditional rule that requires `target_id` for `supersede` and `revoke`.
-5. Run `npm run check-step -- 2` locally.
-6. Commit and push your change.
 
-### ✅ How this step is graded
+1. Confirm required fields include `id`, `category`, `rule`, `rationale`, `scope`, `state`, `action`, `provenance`, `fingerprint`, and `created_at`.
 
-| | |
-|---|---|
-| 🚦 **Trigger** | Push a change to `schemas/candidate.schema.json`. |
-| 🔍 **Check** | The grader generates a candidate from the sample correction and validates it against your schema. |
-| 💬 **Feedback** | A failed run updates the exercise issue with the specific missing control and the file to fix. |
+1. Confirm `additionalProperties` is `false` so unknown fields are rejected.
+
+1. Review the conditional rule that requires `target_id` for `supersede` and `revoke`.
+
+1. Verify your work locally, then commit and push.
+
+   ```bash
+   npm run check-step -- 2
+   git commit --allow-empty -am "Complete the candidate schema"
+   git push
+   ```
+
+1. Mona will check your work and share the next step.
 
 <details>
 <summary><b>Having trouble? 🤷</b></summary><br/>

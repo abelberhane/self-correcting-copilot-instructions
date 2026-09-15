@@ -1,6 +1,6 @@
-# 🔀 Step 4: Generate an instruction-update PR
+## Step 4: Generate an instruction-update PR
 
-> **Lesson 1 · Governed corrections** · Step 4 of 10
+> **Lesson 1 of 2 · Governed corrections** · Step 4 of 10
 
 ### 📖 Theory: Propose changes, never push them
 
@@ -11,28 +11,44 @@ Two boundaries matter here. The instruction file has a maintainer-controlled sec
 > [!NOTE]
 > The workflow also records provenance linking back to the original comment, which is what makes review and rollback possible later.
 
+### ⌨️ Activity: Allow Actions to open pull requests
+
+The proposal workflow opens a pull request on your behalf, so GitHub Actions needs permission to do that.
+
+1. In your repository, select **Settings** > **Actions** > **General**.
+
+1. Under **Workflow permissions**, select **Read and write permissions**.
+
+1. Select **Allow GitHub Actions to create and approve pull requests**.
+
+1. Select **Save**.
+
 ### ⌨️ Activity: Open a reviewable candidate pull request
 
 1. Open `.github/workflows/propose-instruction.yml`.
-2. Confirm it verifies trust, parses the comment, and validates the candidate before writing anything.
-3. Confirm it creates a dedicated branch instead of committing to the default branch.
-4. Confirm it renders instructions, writes audit and fingerprint data, and opens a pull request.
-5. Run `npm run check-step -- 4` locally.
-6. Commit and push your change.
 
-### ✅ How this step is graded
+1. Confirm it verifies trust, parses the comment, and validates the candidate before writing anything.
 
-| | |
-|---|---|
-| 🚦 **Trigger** | Push workflow or script changes, or post a valid `/copilot-learn` comment. |
-| 🔍 **Check** | The grader confirms the workflow branches, renders, records an audit entry, and creates a pull request. |
-| 💬 **Feedback** | A failed run updates the exercise issue with the specific missing control and the file to fix. |
+1. Confirm it creates a dedicated branch instead of committing to the default branch.
+
+1. Confirm it renders instructions, writes audit and fingerprint data, and opens a pull request.
+
+1. Preview the candidate the pipeline would produce, then commit and push.
+
+   ```bash
+   npm run simulate
+   npm run check-step -- 4
+   git commit --allow-empty -am "Generate an instruction-update pull request"
+   git push
+   ```
+
+1. Mona will check your work and share the next step.
 
 <details>
 <summary><b>Having trouble? 🤷</b></summary><br/>
 
 - Run `npm run simulate` to inspect the candidate the pipeline would produce.
-- If the pull request is not created, confirm Actions has read and write permissions and may create pull requests.
+- If the pull request is not created, recheck the **Workflow permissions** settings above.
 - Never replace the branch and pull request flow with a direct push.
 
 </details>
