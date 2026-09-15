@@ -1,6 +1,6 @@
-# ♻️ Step 7: Supersede or revoke a rule
+## Step 7: Supersede or revoke a rule
 
-> **Lesson 1 · Governed corrections** · Step 7 of 10
+> **Lesson 1 of 2 · Governed corrections** · Step 7 of 10
 
 ### 📖 Theory: Retire rules without erasing history
 
@@ -8,25 +8,38 @@ Rules change. A rule may become obsolete, or turn out to be wrong. Deleting it d
 
 `supersede` marks the old rule as superseded and adds its replacement. `revoke` marks a rule revoked and stops applying it. Both keep the original entry, its provenance, and its audit record. Because these operations change existing guidance, they always go to human review.
 
+```md
+/copilot-learn
+category: TEST
+action: revoke
+target_id: RULE-TEST-PARSER-001
+rule: Retire the parser test rule now that coverage is enforced in CI.
+rationale: The rule is redundant with the required test workflow.
+scope: repository
+```
+
 > [!NOTE]
 > A lifecycle action requires a `target_id` that is currently `active`. You cannot supersede something that was already retired.
 
 ### ⌨️ Activity: Transition a rule through its lifecycle
 
 1. Choose an active rule ID from `.github/copilot-instructions.md`.
-2. Post a `/copilot-learn` correction using `action: supersede` or `action: revoke` with that `target_id`.
-3. Review the resulting diff and confirm the original rule is retained with a new state.
-4. Confirm a superseding rule is added as a separate entry.
-5. Run `npm run check-step -- 7` locally.
-6. Commit and push any changes.
 
-### ✅ How this step is graded
+1. On a pull request labeled `copilot-authored`, post a `/copilot-learn` correction using `action: supersede` or `action: revoke` with that `target_id`.
 
-| | |
-|---|---|
-| 🚦 **Trigger** | Post a lifecycle correction, or push script and fixture changes. |
-| 🔍 **Check** | The grader confirms only an active target can transition and that history is preserved. |
-| 💬 **Feedback** | A failed run updates the exercise issue with the specific missing control and the file to fix. |
+1. Review the resulting diff and confirm the original rule is retained with a new state.
+
+1. Confirm a superseding rule is added as a separate entry rather than replacing the original.
+
+1. Verify your work locally, then commit and push.
+
+   ```bash
+   npm run check-step -- 7
+   git commit --allow-empty -am "Supersede or revoke a rule"
+   git push
+   ```
+
+1. Mona will check your work and share the next step.
 
 <details>
 <summary><b>Having trouble? 🤷</b></summary><br/>

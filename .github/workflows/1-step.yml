@@ -1,64 +1,149 @@
 name: Step 1
+
 on:
   push:
-    branches-ignore: [main]
-    paths: ['.github/learning-config.yml', '.github/workflows/1-step.yml']
+    # Exercise workflows stay disabled until the previous step enables them,
+    # so this trigger only fires while step 1 is the active step.
+    branches-ignore:
+      - main
   workflow_dispatch:
+
 permissions:
   contents: read
+  actions: write
   issues: write
+
+env:
+  STEP_NEXT_FILE: ".github/steps/2-step.md"
+
 jobs:
   find_exercise:
-    runs-on: ubuntu-latest
-    outputs:
-      issue: ${{ steps.issue.outputs.number }}
-    steps:
-      - id: issue
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: echo "number=$(gh issue list --state open --search 'Self-correcting Copilot instructions in:title' --json number --jq '.[0].number // empty')" >> "$GITHUB_OUTPUT"
+    name: Find Exercise Issue
+    uses: skills/exercise-toolkit/.github/workflows/find-exercise-issue.yml@v0.9.1
+
   check_step_work:
-    needs: find_exercise
-    if: needs.find_exercise.outputs.issue != ''
+    name: Check step work
     runs-on: ubuntu-latest
-    outputs:
-      passed: ${{ steps.grade.outcome == 'success' }}
+    needs: [find_exercise]
+    env:
+      ISSUE_REPOSITORY: ${{ github.repository }}
+      ISSUE_NUMBER: ${{ needs.find_exercise.outputs.issue-number }}
+
     steps:
-      - name: Gate current step
-        env:
-          GH_TOKEN: ${{ github.token }}
-          ISSUE: ${{ needs.find_exercise.outputs.issue }}
-        run: gh issue view "$ISSUE" --json labels --jq '.labels[].name' | grep -Fx 'skills-step-1'
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Get response templates
+        uses: actions/checkout@v6
+        with:
+          repository: skills/exercise-toolkit
+          path: exercise-toolkit
+          ref: v0.9.1
+
+      - name: Find last comment
+        id: find-last-comment
+        uses: peter-evans/find-comment@v3
+        with:
+          repository: ${{ env.ISSUE_REPOSITORY }}
+          issue-number: ${{ env.ISSUE_NUMBER }}
+          direction: last
+
+      - name: Update comment - checking work
+        uses: GrantBirki/comment@v2.1.1
+        with:
+          repository: ${{ env.ISSUE_REPOSITORY }}
+          issue-number: ${{ env.ISSUE_NUMBER }}
+          comment-id: ${{ steps.find-last-comment.outputs.comment-id }}
+          file: exercise-toolkit/markdown-templates/step-feedback/checking-work.md
+          edit-mode: replace
+
+      # START: Check practical exercise
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
-      - run: npm ci
-      - id: grade
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check step 1
+        id: check-step
         continue-on-error: true
         run: npm run check-step -- 1
-      - if: steps.grade.outcome != 'success'
+
+      - name: Update comment - step results
+        uses: GrantBirki/comment@v2.1.1
+        with:
+          repository: ${{ env.ISSUE_REPOSITORY }}
+          issue-number: ${{ env.ISSUE_NUMBER }}
+          comment-id: ${{ steps.find-last-comment.outputs.comment-id }}
+          edit-mode: replace
+          file: exercise-toolkit/markdown-templates/step-feedback/step-results-table.md
+          vars: |
+            step_number: 1
+            results_table:
+              - description: "Trusted associations and the exact `/copilot-learn` command are configured"
+                passed: ${{ steps.check-step.outcome == 'success' }}
+            tips:
+              - "A label never proves identity. Keep the author association check in place."
+              - "The workflow log for this run prints the exact assertion that failed."
+
+      # END: Check practical exercise
+
+      - name: Fail job if check failed
+        if: ${{ steps.check-step.outcome != 'success' }}
         run: exit 1
+
   post_next_step_content:
+    name: Post next step content
     needs: [find_exercise, check_step_work]
-    if: always() && needs.find_exercise.outputs.issue != '' && needs.check_step_work.result != 'skipped'
     runs-on: ubuntu-latest
-    permissions:
-      issues: write
+    env:
+      ISSUE_REPOSITORY: ${{ github.repository }}
+      ISSUE_NUMBER: ${{ needs.find_exercise.outputs.issue-number }}
+
     steps:
-      - uses: actions/checkout@v4
-      - env:
-          GH_TOKEN: ${{ github.token }}
-          ISSUE: ${{ needs.find_exercise.outputs.issue }}
-          PASSED: ${{ needs.check_step_work.result == 'success' }}
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Get response templates
+        uses: actions/checkout@v6
+        with:
+          repository: skills/exercise-toolkit
+          path: exercise-toolkit
+          ref: v0.9.1
+
+      - name: Create comment - step finished
+        uses: GrantBirki/comment@v2.1.1
+        with:
+          repository: ${{ env.ISSUE_REPOSITORY }}
+          issue-number: ${{ env.ISSUE_NUMBER }}
+          file: exercise-toolkit/markdown-templates/step-feedback/step-finished-prepare-next-step.md
+          vars: |
+            next_step_number: 2
+
+      - name: Create comment - add step content
+        uses: GrantBirki/comment@v2.1.1
+        with:
+          repository: ${{ env.ISSUE_REPOSITORY }}
+          issue-number: ${{ env.ISSUE_NUMBER }}
+          file: ${{ env.STEP_NEXT_FILE }}
+          vars: |
+            login: ${{ github.actor }}
+            full_repo_name: ${{ github.repository }}
+
+      - name: Create comment - watching for progress
+        uses: GrantBirki/comment@v2.1.1
+        with:
+          repository: ${{ env.ISSUE_REPOSITORY }}
+          issue-number: ${{ env.ISSUE_NUMBER }}
+          file: exercise-toolkit/markdown-templates/step-feedback/watching-for-progress.md
+
+      - name: Disable current workflow and enable next one
         run: |
-          marker='<!-- skills-step-1 -->'
-          if [ "$PASSED" = true ]; then
-            gh issue edit "$ISSUE" --remove-label skills-step-1 --add-label skills-step-2
-            body=$(printf '%s\n%s' "$marker" "$(cat .github/steps/2-step.md)")
-          else
-            body=$(printf '%s\n%s' "$marker" "$(sed 's/{{STEP}}/1/g' .github/markdown-templates/feedback.md)")
-          fi
-          id=$(gh api "repos/${{ github.repository }}/issues/$ISSUE/comments" --jq ".[] | select(.body | contains(\"$marker\")) | .id" | head -1)
-          if [ -n "$id" ]; then gh api --method PATCH "repos/${{ github.repository }}/issues/comments/$id" -f body="$body" >/dev/null; else gh issue comment "$ISSUE" --body "$body"; fi
+          gh workflow disable "${{ github.workflow }}"
+          gh workflow enable "Step 2"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
