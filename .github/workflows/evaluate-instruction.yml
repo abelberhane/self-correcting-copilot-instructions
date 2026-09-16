@@ -12,7 +12,15 @@ jobs:
     steps:
       - name: Determine scope
         id: scope
-        run: echo "candidate=${{ contains(github.event.pull_request.labels.*.name, 'copilot-instruction-candidate') }}" >> "$GITHUB_OUTPUT"
+        run: |
+          # Candidate branches are opened and evaluated by Propose instruction,
+          # which reports the status itself. Runs here are held for approval
+          # because the author is a bot, so they would only ever arrive late.
+          if [ '${{ startsWith(github.event.pull_request.head.ref, 'copilot-instruction/') }}' = 'true' ]; then
+            echo 'candidate=false' >> "$GITHUB_OUTPUT"
+          else
+            echo "candidate=${{ contains(github.event.pull_request.labels.*.name, 'copilot-instruction-candidate') }}" >> "$GITHUB_OUTPUT"
+          fi
       - name: Skip pull requests without an instruction candidate
         if: steps.scope.outputs.candidate != 'true'
         run: echo 'No instruction candidate label on this pull request. Nothing to evaluate.'
