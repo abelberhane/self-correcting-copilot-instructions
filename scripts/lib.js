@@ -123,10 +123,15 @@ function makeCandidate(fields, event, now = new Date().toISOString()) {
   };
 }
 
-function evaluateRisk(candidate, policy = {}) {
+function evaluateRisk(candidate, policy) {
+  // No default policy: a caller that forgets to pass one would silently ignore
+  // .github/auto-merge-policy.yml, which is the file the learner edits.
+  if (!policy || !policy.blocked_categories || !policy.max_rule_length) {
+    throw new Error('evaluateRisk requires a policy with blocked_categories and max_rule_length.');
+  }
   const reasons = [];
-  const sensitive = policy.blocked_categories || ['ARCH', 'PROCESS', 'SECURITY'];
-  const maxLength = policy.max_rule_length || 180;
+  const sensitive = policy.blocked_categories;
+  const maxLength = policy.max_rule_length;
   let risk = 'low';
   if (sensitive.includes(candidate.category)) { risk = 'high'; reasons.push(`${candidate.category} requires human review.`); }
   else if (candidate.rule.length > maxLength || candidate.scope === 'repository' || candidate.action !== 'add') { risk = 'medium'; reasons.push('Broad, long, or lifecycle-changing rules require human review.'); }
