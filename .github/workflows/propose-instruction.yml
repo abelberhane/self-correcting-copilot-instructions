@@ -98,9 +98,17 @@ jobs:
             jq -n --rawfile paths "$RUNNER_TEMP/paths.txt" \
               '{labels:["copilot-instruction-candidate","copilot-authored"],paths:($paths|split("\n")|map(select(length>0)))}' \
               > "$RUNNER_TEMP/context.json"
-            node scripts/evaluate-instruction.js "$RUNNER_TEMP/candidate.json" "$RUNNER_TEMP/context.json" > "$RUNNER_TEMP/evaluation.json"
-            eligible=$(jq -r .autoMergeEligible "$RUNNER_TEMP/evaluation.json")
-            if [ "$eligible" = true ]; then
+            # A rejected candidate is still a reportable outcome, so do not let a
+            # non-zero exit abort the step before the status is posted.
+            if ! node scripts/evaluate-instruction.js "$RUNNER_TEMP/candidate.json" "$RUNNER_TEMP/context.json" > "$RUNNER_TEMP/evaluation.json"; then
+              verdict=failure
+              description=$(jq -r '(.errors // ["Candidate failed validation"]) | join("; ")' "$RUNNER_TEMP/evaluation.json" | cut -c1-140)
+            fi
+            cat "$RUNNER_TEMP/evaluation.json"
+            eligible=$(jq -r '.autoMergeEligible // false' "$RUNNER_TEMP/evaluation.json")
+            if [ "$verdict" != success ]; then
+              :
+            elif [ "$eligible" = true ]; then
               description='Low risk: eligible for auto-merge'
             else
               description='Needs human review'
