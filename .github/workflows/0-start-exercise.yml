@@ -46,10 +46,44 @@ jobs:
             gh label create "$name" --color "$color" --description "$description" --force
           done < "$RUNNER_TEMP/labels.tsv"
 
+  allow_actions_pull_requests:
+    name: Allow Actions to open pull requests
+    runs-on: ubuntu-latest
+    needs: [start_exercise]
+    permissions:
+      administration: write
+    outputs:
+      enabled: ${{ steps.verify.outputs.enabled }}
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      # New repositories forbid Actions from opening pull requests. This exercise
+      # is built on automation opening candidate pull requests, so it cannot work
+      # until this is on. default_workflow_permissions is deliberately left at
+      # "read"; every workflow here declares the permissions it needs.
+      - name: Turn on pull request creation for Actions
+        continue-on-error: true
+        run: |
+          gh api -X PUT "repos/${{ github.repository }}/actions/permissions/workflow" \
+            -F can_approve_pull_request_reviews=true
+
+      - name: Verify the setting took effect
+        id: verify
+        run: |
+          enabled=$(gh api "repos/${{ github.repository }}/actions/permissions/workflow" \
+            --jq '.can_approve_pull_request_reviews')
+          echo "enabled=$enabled" >> "$GITHUB_OUTPUT"
+          if [ "$enabled" = "true" ]; then
+            echo "Actions may open pull requests."
+          else
+            echo "::warning::Could not enable pull request creation for Actions. The learner must turn it on manually."
+          fi
+
   post_next_step_content:
     name: Post next step content
     runs-on: ubuntu-latest
-    needs: [start_exercise, provision_labels]
+    needs: [start_exercise, provision_labels, allow_actions_pull_requests]
     env:
       ISSUE_REPOSITORY: ${{ github.repository }}
       ISSUE_NUMBER: ${{ needs.start_exercise.outputs.issue-number }}
@@ -76,6 +110,20 @@ jobs:
           vars: |
             login: ${{ github.actor }}
             full_repo_name: ${{ github.repository }}
+
+      - name: Create comment - manual setup needed
+        if: needs.allow_actions_pull_requests.outputs.enabled != 'true'
+        uses: GrantBirki/comment@v2.1.1
+        with:
+          repository: ${{ env.ISSUE_REPOSITORY }}
+          issue-number: ${{ env.ISSUE_NUMBER }}
+          body: |
+            > [!IMPORTANT]
+            > One setting needs your attention before step 1 can finish.
+            >
+            > Go to **Settings → Actions → General**, and under **Workflow permissions** select **Allow GitHub Actions to create and approve pull requests**, then **Save**.
+            >
+            > This exercise is built on automation opening pull requests for you, so nothing can be proposed until this is on. Re-run the failed **Step 1** job from the **Actions** tab afterwards.
 
       - name: Create comment - watching for progress
         uses: GrantBirki/comment@v2.1.1
