@@ -57,3 +57,16 @@ by hand:
 
 Leave **Read repository contents and packages permissions** selected. Every
 workflow in this exercise requests the permissions it needs explicitly.
+
+## The candidate pull request shows no checks
+
+GitHub holds workflow runs on pull requests opened by `github-actions[bot]`
+until someone approves them, so a check triggered by the candidate pull request
+itself would sit pending forever.
+
+The evaluation therefore runs inside **Propose instruction**, the run your own
+comment triggered, and reports its verdict as a commit status named
+**Evaluate instruction candidate**. That is the status you require in step 6.
+
+If a candidate has no status at all, open the **Propose instruction** run in the
+**Actions** tab and read the **Evaluate the candidate** step.

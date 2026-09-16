@@ -18,6 +18,9 @@ jobs:
         run: echo 'No instruction candidate label on this pull request. Nothing to evaluate.'
       - uses: actions/checkout@v4
         if: steps.scope.outputs.candidate == 'true'
+        with:
+          # git show needs the base commit, which a shallow clone does not have.
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         if: steps.scope.outputs.candidate == 'true'
         with: { node-version: 20, cache: npm }
