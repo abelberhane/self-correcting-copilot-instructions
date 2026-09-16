@@ -19,6 +19,18 @@ Right now you only have the first one. You open the file, you type, you commit. 
 
 The catch is that it relies on somebody remembering. A reviewer notices a problem, explains it in a comment, and that knowledge lives only in the comment. By the next pull request it is gone.
 
+### ⌨️ Activity: Let automation open pull requests
+
+Every proposal in this exercise arrives as a pull request opened by automation. New repositories forbid that by default, so you grant it once, deliberately.
+
+1. Go to **Settings → Actions → General**.
+
+1. Under **Workflow permissions**, select **Allow GitHub Actions to create and approve pull requests**.
+
+1. Leave **Read repository contents and packages permissions** selected, and select **Save**.
+
+Notice what you did *not* grant. Workflows still get read-only access by default; each one asks for exactly the permissions it needs. You allowed automation to *propose*, not to *write*.
+
 ### ⌨️ Activity: Add a rule by hand
 
 Start with the manual approach, so you can feel what the automation replaces.
@@ -59,6 +71,7 @@ Start with the manual approach, so you can feel what the automation replaces.
 - Write it as a markdown bullet starting with `- `.
 - If the check says your rule landed in the wrong section, move it above the `learned-rules:start` marker and push again.
 - Checks run on pushes to a branch, never to `main`. If nothing happened, confirm you are on `teach-the-repo`.
+- **"GitHub Actions is not permitted to create or approve pull requests"** means the setting above is still off. Turn it on, then re-run the failed job from the **Actions** tab.
 - Prefer the web editor? Use **Edit this file**, then choose **Create a new branch** and name it `teach-the-repo`.
 
 </details>
