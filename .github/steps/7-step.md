@@ -37,7 +37,7 @@ Notice that the human-review branch never disappears. You did not remove the rev
    scope: path:src/
    ```
 
-1. Open the **Actions** tab and watch it happen. **Propose instruction** opens a candidate, then **Evaluate instruction candidate** runs and queues it.
+1. Open the **Actions** tab and watch it happen. **Propose instruction** validates the correction, opens a candidate, reports the **Evaluate instruction candidate** check on it, and queues it for auto-merge.
 
 1. Do not merge anything. Wait for the candidate pull request to close on its own.
 
