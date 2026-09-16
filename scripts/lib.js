@@ -158,5 +158,20 @@ function updateInstructions(contents, candidate) {
   return `${protectedBefore}\n${learned.trim()}\n\n${contents.slice(endAt)}`;
 }
 
+// Reads the functions a module exports and reports which ones a test file exercises.
+// This is how the exercise proves a learned rule such as "always add tests" took effect:
+// it inspects the real source and the real tests, not a chat transcript.
+function testCoverage(sourceFile, testFile) {
+  const source = fs.readFileSync(sourceFile, 'utf8');
+  const match = source.match(/module\.exports\s*=\s*\{([^}]*)\}/);
+  if (!match) fail(`${sourceFile} does not export a module.exports object.`);
+  const exported = match[1].split(',').map((name) => name.split(':')[0].trim()).filter(Boolean);
+  if (!exported.length) fail(`${sourceFile} does not export any functions.`);
+  const tests = fs.existsSync(testFile) ? fs.readFileSync(testFile, 'utf8') : '';
+  const covered = exported.filter((name) => new RegExp(`\\b${name}\\b`).test(tests));
+  const uncovered = exported.filter((name) => !covered.includes(name));
+  return { exported, covered, uncovered };
+}
+
 function readJson(file) { return JSON.parse(fs.readFileSync(file, 'utf8')); }
-module.exports = { CATEGORIES, parseCorrection, assertTrusted, makeCandidate, validateCandidate, validateWithSchema, evaluateRisk, evaluatePolicy, assertAllowedPaths, renderRule, updateInstructions, parseRules, fingerprint, stableId, fail, readJson, readYaml };
+module.exports = { CATEGORIES, testCoverage, parseCorrection, assertTrusted, makeCandidate, validateCandidate, validateWithSchema, evaluateRisk, evaluatePolicy, assertAllowedPaths, renderRule, updateInstructions, parseRules, fingerprint, stableId, fail, readJson, readYaml };
