@@ -2,6 +2,16 @@ name: Evaluate instruction candidate
 on:
   pull_request:
     types: [opened, synchronize, reopened, labeled, unlabeled]
+    # A candidate pull request changes only these paths, so this workflow never
+    # starts for one. Propose instruction already evaluated it and reported the
+    # status. Runs created here would be held for approval because the author is
+    # a bot, and a held run resolves to "failure" the moment the pull request
+    # merges, reporting a red X on work that passed.
+    paths-ignore:
+      - '.github/copilot-instructions.md'
+      - 'data/candidates/**'
+      - 'data/fingerprints/**'
+      - 'data/audit/**'
 permissions:
   contents: read
   pull-requests: write
