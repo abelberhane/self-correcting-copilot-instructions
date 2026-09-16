@@ -16,6 +16,23 @@
 - **Pushing does not trigger the current step:** Step workflows ignore `main`. Work on a branch, for example `build-the-pipeline`, and push there.
 - **You want to restart:** Close the exercise issue, revert your changes, then enable and run **Step 0** from the **Actions** tab. Audit entries are append-only, so revoke or supersede rules instead of deleting history.
 
+## Tests fail on a fresh copy
+
+This is expected. `scripts/lib.js` ships with the strict parser and two safety validators
+unimplemented, marked `TODO(step 3)` and `TODO(step 5)`. You implement them during the exercise.
+
+| Symptom | What it means |
+| --- | --- |
+| `not ok ... rejects unsafe fixture: unknown-field.json` | The `TODO(step 3)` allowed-field check is not implemented yet |
+| `not ok ... rejects unsafe fixture: wrong-command.json` | The `TODO(step 3)` first-line check is not implemented yet |
+| `not ok ... rejects unsafe fixture: prompt-injection.json` | The `TODO(step 5)` injection check is not implemented yet |
+| `not ok ... rejects unsafe fixture: governance.json` | The `TODO(step 5)` governance check is not implemented yet |
+
+Run `npm run check-step -- 3` or `npm run check-step -- 5` for a message naming the exact gap.
+
+The `Evaluate instruction candidate` workflow only runs the test suite on candidate pull
+requests, so unimplemented stubs do not block your ordinary pull requests before Step 6.
+
 ## Repository setup problems
 
 - **Candidate PR is not created:** Open **Settings** > **Actions** > **General**, select **Read and write permissions**, enable **Allow GitHub Actions to create and approve pull requests**, and save.

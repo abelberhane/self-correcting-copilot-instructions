@@ -1,0 +1,19 @@
+{
+  "repository": "octocat/self-correcting-copilot-instructions",
+  "comment_id": 98765,
+  "actor": {
+    "login": "maintainer",
+    "association": "OWNER"
+  },
+  "pull_request": {
+    "number": 42,
+    "author": "octocat",
+    "labels": [
+      "copilot-authored",
+      "copilot-correction"
+    ]
+  },
+  "body": "Hey team, please use /copilot-learn\ncategory: TOOL\nrule: Document parser edge cases in the module header.\nrationale: Future maintainers need the context.\nscope: path:scripts/",
+  "existing_rules": [],
+  "fixture": "wrong-command"
+}

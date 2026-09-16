@@ -17,7 +17,9 @@ function stableId(category, rule) { return `RULE-${category}-${fingerprint(rule)
 function parseCorrection(body) {
   if (typeof body !== 'string') fail('Comment body must be text.');
   const lines = body.replace(/\r/g, '').split('\n');
-  if (lines[0].trim() !== '/copilot-learn') fail('The command must be the first line and exactly /copilot-learn.');
+  // TODO(step 3): Require the command to be the first line and exactly `/copilot-learn`.
+  //   A comment that merely mentions the command further down must not trigger the
+  //   pipeline. Call fail() with a message containing "first line".
   const fields = {};
   for (const raw of lines.slice(1)) {
     const line = raw.trim();
@@ -25,8 +27,11 @@ function parseCorrection(body) {
     const match = line.match(/^([a-z_]+):\s+(.+)$/);
     if (!match) fail(`Malformed command line: ${line}`);
     const [, key, value] = match;
-    if (!ALLOWED_FIELDS.includes(key)) fail(`Field ${key} is not allowed.`);
-    if (Object.hasOwn(fields, key)) fail(`Field ${key} was provided more than once.`);
+    // TODO(step 3): Reject any key that is not in ALLOWED_FIELDS. Without this,
+    //   a crafted comment can smuggle a field such as `shell: ...` into the
+    //   candidate. Call fail() with a message containing "not allowed".
+    // TODO(step 3): Reject a key that was already supplied, so a second
+    //   `category:` line cannot quietly override the first.
     fields[key] = value.trim();
   }
   for (const required of ['category', 'rule', 'rationale', 'scope']) if (!fields[required]) fail(`Missing required field: ${required}.`);
@@ -67,8 +72,12 @@ function validateCandidate(candidate, existing = []) {
   if (candidate.fingerprint !== fingerprint(candidate.rule)) errors.push('Fingerprint does not match normalized rule.');
   const combined = `${candidate.rule}\n${candidate.rationale}`;
   if (SECRET_PATTERNS.some((pattern) => pattern.test(combined))) errors.push('Potential secret detected.');
-  if (INJECTION_PATTERNS.some((pattern) => pattern.test(combined))) errors.push('Prompt injection or executable content detected.');
-  if (GOVERNANCE_PATTERNS.some((pattern) => pattern.test(combined))) errors.push('Candidates cannot change governance or security controls.');
+  // The secret check above is the worked example. Implement the next two the same way.
+  // TODO(step 5): Reject prompt injection and executable content using
+  //   INJECTION_PATTERNS. See test/fixtures/unsafe/prompt-injection.json.
+  // TODO(step 5): Reject candidates that try to change governance or security
+  //   controls using GOVERNANCE_PATTERNS. This is the control that protects every
+  //   other control. See test/fixtures/unsafe/governance.json.
   if (existing.some((rule) => rule.fingerprint === candidate.fingerprint && rule.state !== 'revoked')) errors.push('Duplicate active rule.');
   if (/\bnever\b/i.test(candidate.rule) && existing.some((rule) => rule.state === 'active' && opposite(rule.rule, candidate.rule))) errors.push('Candidate contradicts an active rule.');
   if (/\b(always|never)\b/i.test(candidate.rule) && candidate.scope === 'repository' && /\b(this|that|current)\b/i.test(candidate.rule)) errors.push('Rule appears overfit or ambiguous.');

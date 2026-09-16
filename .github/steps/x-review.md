@@ -14,6 +14,32 @@ Here's a recap of what you built:
 - **Rule lifecycle**: Superseded and revoked rules without erasing history
 - **Guarded auto-merge**: Queued only provably low-risk candidates behind branch protection, never bypassing required checks
 
+<details>
+<summary><b>Reference implementation for the graded code 🔑</b></summary><br/>
+
+The two `TODO` blocks in `scripts/lib.js` can be satisfied like this. If you solved them a
+different way and the graders pass, your version is equally valid.
+
+Step 3, inside `parseCorrection`:
+
+```js
+if (lines[0].trim() !== '/copilot-learn') fail('The /copilot-learn command must be on the first line.');
+```
+
+```js
+if (!ALLOWED_FIELDS.includes(key)) fail(`Field "${key}" is not allowed.`);
+if (Object.hasOwn(fields, key)) fail(`Field "${key}" was supplied more than once.`);
+```
+
+Step 5, inside `validateCandidate`:
+
+```js
+if (INJECTION_PATTERNS.some((pattern) => pattern.test(combined))) errors.push('Prompt injection or executable content detected.');
+if (GOVERNANCE_PATTERNS.some((pattern) => pattern.test(combined))) errors.push('Candidate attempts to change governance or security controls.');
+```
+
+</details>
+
 ### Key takeaways
 
 - **Automation proposes, humans decide.** Anything ambiguous, medium-risk, or high-risk belongs in human review.

@@ -110,10 +110,14 @@ The whole pipeline is deterministic. No model API, external service, or secret i
 
 ```bash
 npm ci
-npm test        # unit tests over valid and unsafe fixtures
+npm test          # unit tests over valid and unsafe fixtures
 npm run validate  # repository structure and workflow safety
 npm run simulate  # print the candidate a correction would produce
+npm run check-step -- 3   # grade a single step
 ```
+
+> [!IMPORTANT]
+> **`npm test` fails on a fresh copy, and that is intentional.** Parts of the parser and the safety validators ship unimplemented, marked `TODO(step 3)` and `TODO(step 5)` in `scripts/lib.js`. You implement them during the exercise. Run a step's grader before you start it: the failure message tells you exactly which control is missing.
 
 ## Reset or retry
 
