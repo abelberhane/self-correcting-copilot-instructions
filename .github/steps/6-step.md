@@ -52,7 +52,7 @@ So before you let anything merge itself, you make the floor solid:
 <details>
 <summary><b>Having trouble? 🤷</b></summary><br/>
 
-- **Cannot find the status check?** It only appears after it has run at least once. Open any pull request to trigger it, then return to the ruleset.
+- **Cannot find the status check?** It only appears after it has been reported at least once. Your step 3 candidate already reported it, so search for `Evaluate instruction candidate` and it should be there.
 - The check is named exactly **Evaluate instruction candidate**, matching `required_checks` in your policy.
 - If pushing to `main` now fails, that is branch protection working. Push to `teach-the-repo` instead.
 - **"The auto-merge policy is not enabled on the default branch"** means your step 5 pull request was never merged. Merge it, then `git pull origin main --no-rebase` and push again.
