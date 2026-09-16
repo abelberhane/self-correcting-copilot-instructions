@@ -46,6 +46,13 @@ When you post this, automation reads the comment **as data** and opens a pull re
 
 1. Merge the candidate pull request.
 
+1. Your rule is now on the default branch. Push an empty commit so the check can look at it.
+
+   ```bash
+   git commit --allow-empty -m "Teach the repository to require tests"
+   git push
+   ```
+
 1. Mona will check your work and share the next step.
 
 <details>
@@ -55,5 +62,7 @@ When you post this, automation reads the comment **as data** and opens a pull re
 - **Workflow did not run?** Check **Settings → Actions → General** and confirm workflows are allowed to create pull requests.
 - **Validation failed?** Read the workflow log. It names the exact field that was rejected. Missing `rationale` and an unknown category are the two most common causes.
 - Keep `scope: path:src/`. A repository-wide absolute rule is treated as higher risk, which matters in Lesson 2.
+- This check reads the default branch, so merge the candidate **before** you push.
+- **"No learned rule found"** means the candidate was opened but never merged.
 
 </details>

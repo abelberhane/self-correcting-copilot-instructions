@@ -29,6 +29,8 @@ Now collect the payoff. You are going to ask Copilot for the exact thing that st
    git merge origin/main
    ```
 
+   You are now on the branch that adds `applyDiscount`, with your new rule in place.
+
 1. Open Copilot Chat and ask for the change *without mentioning tests at all*:
 
    ```text
@@ -41,7 +43,13 @@ Now collect the payoff. You are going to ask Copilot for the exact thing that st
 
 Now turn what you just saw into something the grader can verify.
 
-1. Add the tests to `test/cart.test.js`. Cover at least the ordinary case:
+1. Open `test/cart.test.js` and add `applyDiscount` to the import at the top:
+
+   ```js
+   const { addItem, removeItem, subtotal, applyDiscount } = require('../src/cart');
+   ```
+
+1. Add a test at the bottom of the file. Cover at least the ordinary case:
 
    ```js
    test('applyDiscount reduces every price by the given percent', () => {
@@ -50,8 +58,6 @@ Now turn what you just saw into something the grader can verify.
    });
    ```
 
-1. Import `applyDiscount` at the top of the test file alongside the other functions.
-
 1. Run the suite and push.
 
    ```bash
@@ -59,6 +65,8 @@ Now turn what you just saw into something the grader can verify.
    git commit -am "Add tests for applyDiscount"
    git push
    ```
+
+1. Merge the **Add applyDiscount to the cart module** pull request. The gap you found in step 2 is now closed.
 
 1. Mona will check your work and share the next step.
 

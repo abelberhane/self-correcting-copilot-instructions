@@ -3,6 +3,10 @@ name: Step 2
 on:
   issue_comment:
     types: [created]
+  push:
+    branches-ignore:
+      - main
+      - 'copilot-instruction/**'
   workflow_dispatch:
 
 permissions:

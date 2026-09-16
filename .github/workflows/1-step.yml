@@ -2,8 +2,10 @@ name: Step 1
 
 on:
   push:
-    # Candidate branches are pushed by automation, not by the learner.
+    # The exercise is copied by pushing to main, so main must stay ignored or every
+    # step workflow fires at once on repository creation. Learners work on a branch.
     branches-ignore:
+      - main
       - 'copilot-instruction/**'
   workflow_dispatch:
 

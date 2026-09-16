@@ -46,7 +46,8 @@ Notice that the human-review branch never disappears. You did not remove the rev
 1. Pull the result and push so the check can see it.
 
    ```bash
-   git pull --rebase origin main
+   git switch teach-the-repo
+   git pull origin main --no-rebase
    git commit --allow-empty -m "Second correction merged automatically"
    git push
    ```
@@ -60,5 +61,6 @@ Notice that the human-review branch never disappears. You did not remove the rev
 - **Marked for human review instead?** Run `npm run decide` and compare. A `repository` scope or a blocked category will do this, and it means the guardrails are working.
 - Keep `scope: path:src/`. Widening it to `repository` makes the rule medium risk on purpose.
 - If nothing happened at all, confirm the comment starts with `/copilot-learn` on the first line.
+- **Candidate opened but never queued?** Confirm **Allow auto-merge** is on in **Settings → General** and that your policy reached `main` in step 5.
 
 </details>
