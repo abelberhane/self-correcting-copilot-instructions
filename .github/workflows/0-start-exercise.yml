@@ -88,3 +88,12 @@ jobs:
         run: gh workflow enable "Step 1"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Propose instruction reports the "Evaluate instruction candidate" status
+      # itself, from the run the learner's own comment triggered. This workflow
+      # has nothing left to evaluate here, and GitHub would hold its runs for
+      # approval because the pull requests are opened by a bot.
+      - name: Quiet the redundant evaluator
+        run: gh workflow disable "Evaluate instruction candidate"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
