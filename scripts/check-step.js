@@ -103,6 +103,10 @@ const steps = {
     const policy = readYaml('.github/auto-merge-policy.yml');
     assert((policy.required_checks || []).includes('Evaluate instruction candidate'),
       'required_checks in your policy must list "Evaluate instruction candidate".');
+    // Candidates branch from the default branch, so a policy that only exists on
+    // your working branch would never apply to them.
+    assert(policy.enabled === true,
+      'The auto-merge policy is not enabled on the default branch. Merge your step 5 pull request into main so the policy applies to candidates.');
   },
 
   // A second rule arrived without anyone merging it by hand.

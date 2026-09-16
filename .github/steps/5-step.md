@@ -46,12 +46,17 @@ That decision lives in `.github/auto-merge-policy.yml`, and it is deliberately m
 
    Now you should see the split: narrow rules auto-merge, while repository-wide mandates, security rules, and process changes go to human review.
 
-1. Commit and push.
+1. Commit and push from your working branch.
 
    ```bash
+   git switch teach-the-repo
    git commit -am "Enable low-risk auto-merge"
    git push
    ```
+
+1. Open a pull request from `teach-the-repo` and merge it.
+
+   Candidate pull requests branch from `main`, so a policy that exists only on your working branch would never apply to them.
 
 1. Mona will check your work and share the next step.
 
@@ -62,5 +67,6 @@ That decision lives in `.github/auto-merge-policy.yml`, and it is deliberately m
 - If `npm run decide` still shows everything under human review, check that `allowed_risk` is `low` and that you saved the file.
 - Removing a category from `blocked_categories` makes that category eligible for automation. The check will fail if `ARCH`, `PROCESS`, or `SECURITY` is missing.
 - The policy file itself is a protected path, so no correction can ever edit it. That is deliberate.
+- Merging to `main` matters here. The next step checks that your policy actually landed there.
 
 </details>

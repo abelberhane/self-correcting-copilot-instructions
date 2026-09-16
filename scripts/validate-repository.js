@@ -33,13 +33,17 @@ for (let step = 1; step <= STEP_COUNT; step++) {
   const contents = fs.readFileSync(`.github/workflows/${step}-step.yml`, 'utf8');
   if (!contents.startsWith(`name: Step ${step}\n`)) throw new Error(`${step}-step.yml must be named "Step ${step}" so the previous step can enable it.`);
   if (!contents.includes('gh workflow disable')) throw new Error(`${step}-step.yml must disable itself after passing.`);
+  // Copying the exercise pushes to main. If main is not ignored, every step
+  // workflow fires at once on repository creation and the learner gets a wall
+  // of failed runs.
+  if (!/branches-ignore:\s*\n\s*- main\b/.test(contents)) throw new Error(`${step}-step.yml must list "main" under branches-ignore.`);
   const handoff = step < STEP_COUNT ? `gh workflow enable "Step ${step + 1}"` : 'finish-exercise.yml';
   if (!contents.includes(handoff)) throw new Error(`${step}-step.yml must hand off with "${handoff}".`);
 }
 // The template must ship with applyDiscount ABSENT. Step 1 adds it on a branch so the
 // learner has something real to review; if it were already here the review is pointless.
 const cart = fs.readFileSync('src/cart.js', 'utf8');
-if (cart.includes('applyDiscount')) throw new Error('src/cart.js must not contain applyDiscount on the default branch.');
+if (cart.includes('applyDiscount')) throw new Error('src/cart.js must not contain applyDiscount in the published template; step 1 adds it on a branch so the learner has something to review.');
 const { testCoverage } = require('./lib');
 const baseline = testCoverage('src/cart.js', 'test/cart.test.js');
 if (baseline.uncovered.length) throw new Error(`src/cart.js ships with untested exports: ${baseline.uncovered.join(', ')}`);

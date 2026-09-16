@@ -1,9 +1,13 @@
 name: Step 8
 
 on:
+  issue_comment:
+    types: [created]
   push:
-    # Candidate branches are pushed by automation, not by the learner.
+    # The exercise is copied by pushing to main, so main must stay ignored or every
+    # step workflow fires at once on repository creation. Learners work on a branch.
     branches-ignore:
+      - main
       - 'copilot-instruction/**'
   workflow_dispatch:
 
@@ -22,13 +26,18 @@ jobs:
     name: Check step work
     runs-on: ubuntu-latest
     needs: [find_exercise]
+    if: github.event_name != 'issue_comment' || github.event.issue.pull_request
     env:
       ISSUE_REPOSITORY: ${{ github.repository }}
       ISSUE_NUMBER: ${{ needs.find_exercise.outputs.issue-number }}
 
     steps:
-      - name: Checkout
+      - name: Checkout the default branch
+        # The merged rule lives on the default branch, not on the branch that
+        # triggered this run.
         uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.repository.default_branch }}
 
       - name: Get response templates
         uses: actions/checkout@v6
@@ -124,6 +133,11 @@ jobs:
   finish_exercise:
     name: Finish exercise
     needs: [find_exercise, post_review_content]
+    # A called workflow cannot exceed the caller's permissions, and
+    # finish-exercise.yml requires contents: write.
+    permissions:
+      contents: write
+      issues: write
     uses: skills/exercise-toolkit/.github/workflows/finish-exercise.yml@v0.9.1
     with:
       issue-url: ${{ needs.find_exercise.outputs.issue-url }}

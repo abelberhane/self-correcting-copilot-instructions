@@ -43,7 +43,8 @@ It must still be refused, and for more than one independent reason — because a
 1. Push so the final check can run.
 
    ```bash
-   git pull --rebase origin main
+   git switch teach-the-repo
+   git pull origin main --no-rebase
    git commit --allow-empty -m "Verify unsafe corrections stay blocked"
    git push
    ```
