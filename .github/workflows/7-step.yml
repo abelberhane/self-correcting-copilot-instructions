@@ -2,16 +2,16 @@ name: Step 7
 
 on:
   push:
-    # Exercise workflows stay disabled until the previous step enables them,
-    # so this trigger only fires while step 7 is the active step.
+    # Candidate branches are pushed by automation, not by the learner.
     branches-ignore:
-      - main
+      - 'copilot-instruction/**'
   workflow_dispatch:
 
 permissions:
   contents: read
   actions: write
   issues: write
+  pull-requests: read
 
 env:
   STEP_NEXT_FILE: ".github/steps/8-step.md"
@@ -84,11 +84,11 @@ jobs:
           vars: |
             step_number: 7
             results_table:
-              - description: "Lifecycle transitions preserve history instead of deleting rules"
+              - description: "A second rule reached the instructions without a manual merge"
                 passed: ${{ steps.check-step.outcome == 'success' }}
             tips:
-              - "Only a rule that is currently `active` can be superseded or revoked."
-              - "The workflow log for this run prints the exact assertion that failed."
+              - "Run `git pull --rebase origin main` to bring the merged rule down."
+              - "Keep `scope: path:src/` so the correction stays low risk."
 
       # END: Check practical exercise
 

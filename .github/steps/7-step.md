@@ -1,41 +1,53 @@
-## Step 7: Supersede or revoke a rule
+## Step 7: Watch a correction land on its own
 
-> **Lesson 1 of 2 · Governed corrections** · Step 7 of 10
+> **Lesson 2 of 2 · Let it merge itself** · Step 7 of 8
 
-### 📖 Theory: Retire rules without erasing history
+### 📖 Theory: The loop closes without you
 
-Rules change. A rule may become obsolete, or turn out to be wrong. Deleting it destroys the reasoning trail, so this pipeline uses **lifecycle states** instead.
+Everything is in place. The policy says what is boring enough to merge itself, branch protection makes sure nothing skips the queue, and the evaluator has the final word on every candidate.
 
-`supersede` marks the old rule as superseded and adds its replacement. `revoke` marks a rule revoked and stops applying it. Both keep the original entry, its provenance, and its audit record. Because these operations change existing guidance, they always go to human review.
+So this time you are going to leave a correction and then walk away.
 
-```md
-/copilot-learn
-category: TEST
-action: revoke
-target_id: RULE-TEST-PARSER-001
-rule: Retire the parser test rule now that coverage is enforced in CI.
-rationale: The rule is redundant with the required test workflow.
-scope: repository
+What happens after you press **Comment**:
+
+```mermaid
+flowchart LR
+    A[Your correction] --> B[Parsed and<br/>validated]
+    B --> C[Candidate PR<br/>opened]
+    C --> D[Evaluator<br/>check runs]
+    D --> E{Low risk?}
+    E -->|yes| F[Auto-merge<br/>queued]
+    E -->|no| G[Human review]
+    F --> H[Rule is live]
 ```
 
-> [!NOTE]
-> A lifecycle action requires a `target_id` that is currently `active`. You cannot supersede something that was already retired.
+Notice that the human-review branch never disappears. You did not remove the reviewer; you removed the reviewer from the cases where they were not adding anything.
 
-### ⌨️ Activity: Transition a rule through its lifecycle
+### ⌨️ Activity: Leave a correction and let it merge itself
 
-1. Choose an active rule ID from `.github/copilot-instructions.md`.
+1. Open any pull request in your repository, or reopen the one from Lesson 1.
 
-1. On a pull request labeled `copilot-authored`, post a `/copilot-learn` correction using `action: supersede` or `action: revoke` with that `target_id`.
+1. Post a second correction. This one is deliberately narrow, so your policy should classify it as low risk:
 
-1. Review the resulting diff and confirm the original rule is retained with a new state.
+   ```md
+   /copilot-learn
+   category: STYLE
+   rule: Use const for values that are never reassigned.
+   rationale: Reassignment was used for values that never change.
+   scope: path:src/
+   ```
 
-1. Confirm a superseding rule is added as a separate entry rather than replacing the original.
+1. Open the **Actions** tab and watch it happen. **Propose instruction** opens a candidate, then **Evaluate instruction candidate** runs and queues it.
 
-1. Verify your work locally, then commit and push.
+1. Do not merge anything. Wait for the candidate pull request to close on its own.
+
+1. Open `.github/copilot-instructions.md` and confirm your second rule is now in the **Learned rules** section, alongside the first.
+
+1. Pull the result and push so the check can see it.
 
    ```bash
-   npm run check-step -- 7
-   git commit --allow-empty -am "Supersede or revoke a rule"
+   git pull --rebase origin main
+   git commit --allow-empty -m "Second correction merged automatically"
    git push
    ```
 
@@ -44,8 +56,9 @@ scope: repository
 <details>
 <summary><b>Having trouble? 🤷</b></summary><br/>
 
-- Copy the stable ID exactly, including capitalization.
-- If the target is not active, the candidate is rejected by design.
-- Do not delete the retired rule; changing its state is the expected outcome.
+- **Candidate still open?** Check the **Checks** tab on it. Auto-merge waits for every required check, so it will sit there until the evaluator finishes.
+- **Marked for human review instead?** Run `npm run decide` and compare. A `repository` scope or a blocked category will do this, and it means the guardrails are working.
+- Keep `scope: path:src/`. Widening it to `repository` makes the rule medium risk on purpose.
+- If nothing happened at all, confirm the comment starts with `/copilot-learn` on the first line.
 
 </details>

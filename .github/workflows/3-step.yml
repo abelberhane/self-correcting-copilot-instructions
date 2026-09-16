@@ -2,16 +2,16 @@ name: Step 3
 
 on:
   push:
-    # Exercise workflows stay disabled until the previous step enables them,
-    # so this trigger only fires while step 3 is the active step.
+    # Candidate branches are pushed by automation, not by the learner.
     branches-ignore:
-      - main
+      - 'copilot-instruction/**'
   workflow_dispatch:
 
 permissions:
   contents: read
   actions: write
   issues: write
+  pull-requests: read
 
 env:
   STEP_NEXT_FILE: ".github/steps/4-step.md"
@@ -84,11 +84,11 @@ jobs:
           vars: |
             step_number: 3
             results_table:
-              - description: "The parser accepts only documented fields and rejects unknown ones"
+              - description: "A TEST rule was learned, merged, and carries provenance"
                 passed: ${{ steps.check-step.outcome == 'success' }}
             tips:
-              - "Run `npm test` to see exactly which parsing case failed."
-              - "The workflow log for this run prints the exact assertion that failed."
+              - "The command must be the very first line of the comment."
+              - "Merge the candidate pull request the automation opens, then push here."
 
       # END: Check practical exercise
 

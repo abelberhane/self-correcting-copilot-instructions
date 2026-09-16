@@ -1,48 +1,52 @@
-## Step 2: Complete the candidate schema
+## Step 2: Watch good feedback disappear
 
-> **Lesson 1 of 2 · Governed corrections** · Step 2 of 10
+> **Lesson 1 of 2 · Teach the repository something** · Step 2 of 8
 
-### 📖 Theory: A closed schema makes review possible
+### 📖 Theory: Review is where knowledge is born, and lost
 
-Before automation edits instructions, the proposed change must be **data you can inspect**, not free-form prose. A JSON Schema gives every candidate the same shape: a stable ID, a category, a lifecycle state, provenance, and a fingerprint.
+Code review is the moment a team's standards actually get expressed. Someone reads a change and says "we don't do it that way here." That sentence is valuable, specific, and hard-won.
 
-The schema is **closed** (`additionalProperties: false`), so nothing unexpected can ride along inside a candidate. Stable IDs and fingerprints are derived from the rule text, which means the same rule always produces the same identity and duplicates become detectable.
+It is also written into a comment box that nothing ever reads again.
 
-| Field group | Purpose |
-| --- | --- |
-| `id`, `fingerprint` | Stable identity derived from rule text, so duplicates are detectable |
-| `category`, `scope` | Classification that later drives risk evaluation |
-| `state`, `action` | Lifecycle position: `proposed`, `active`, `superseded`, `revoked`, `blocked` |
-| `provenance`, `created_at` | Who asked, where, and when, so the rule can be audited and rolled back |
+Copilot will not remember it. The next contributor will not see it. The same correction gets made in the next pull request, and the one after that. The knowledge never compounds.
+
+A pull request is waiting for you. Look at it the way you would look at a teammate's work.
 
 > [!NOTE]
-> Provenance answers "who asked for this, and where?" Without it, a rule cannot be audited or rolled back later.
+> The pull request is titled **Add applyDiscount to the cart module**. Find it under the **Pull requests** tab.
 
-### ⌨️ Activity: Define the candidate contract
+### ⌨️ Activity: Review the pull request and leave ordinary feedback
 
-1. Open `schemas/candidate.schema.json`.
+1. Open the **Pull requests** tab and open **Add applyDiscount to the cart module**.
 
-1. Confirm required fields include `id`, `category`, `rule`, `rationale`, `scope`, `state`, `action`, `provenance`, `fingerprint`, and `created_at`.
+1. Select **Files changed** and read the new function. Compare it to the rest of `src/cart.js`.
 
-1. Confirm `additionalProperties` is `false` so unknown fields are rejected.
+1. Notice what is missing: every other exported function in this module has a test in `test/cart.test.js`. This one does not.
 
-1. Review the conditional rule that requires `target_id` for `supersede` and `revoke`.
-
-1. Verify your work locally, then commit and push.
+1. Confirm the automated checks do not catch it. The test suite passes, because passing tests say nothing about the tests nobody wrote.
 
    ```bash
-   npm run check-step -- 2
-   git commit --allow-empty -am "Complete the candidate schema"
-   git push
+   npm test
    ```
+
+1. Leave a review comment the way you normally would. Anything in your own words, such as:
+
+   ```md
+   Please add tests for applyDiscount before we merge this.
+   ```
+
+1. Now open `.github/copilot-instructions.md` and look at the **Learned rules** section.
+
+   Nothing changed. Your feedback was correct, clear, and completely forgotten. That is the problem you are about to fix.
 
 1. Mona will check your work and share the next step.
 
 <details>
 <summary><b>Having trouble? 🤷</b></summary><br/>
 
-- Compare your schema with `test/fixtures/valid/correction.json`.
-- If validation fails, read the reported field path first; it names the exact property.
-- Keep the enums aligned with the categories and states in `.github/learning-config.yml`.
+- Comment on the pull request itself, not on the exercise issue.
+- Write the comment in your own words. Do **not** use `/copilot-learn` yet — that is the next step, and this check expects an ordinary comment.
+- If you cannot find the pull request, check the **Pull requests** tab. If it is missing, re-run the Step 1 workflow from the **Actions** tab to create it.
+- Nothing should change in `.github/copilot-instructions.md` during this step. That is the expected result, not a failure.
 
 </details>

@@ -13,15 +13,25 @@
 - **Nothing happened after copying the exercise:** **Step 0** runs automatically on the first push to `main`. Open the **Actions** tab and confirm the **Step 0** run succeeded, then refresh the repository home page.
 - **Step 0 fails with "could not add label":** The exercise labels were not created. Confirm **Settings** > **Actions** > **General** uses **Read and write permissions**, then re-run **Step 0** from the **Actions** tab.
 - **A step workflow never runs:** Only one step workflow is enabled at a time. Each step disables itself and enables the next one when it passes. Open the **Actions** tab, confirm the expected **Step N** workflow is enabled, and re-run it with **Run workflow** if needed.
-- **Pushing does not trigger the current step:** Step workflows ignore `main`. Work on a branch, for example `build-the-pipeline`, and push there.
+- **Pushing does not trigger the current step:** Step workflows run on pushes to any branch except the automation's own `copilot-instruction/**` branches. If nothing ran, confirm the expected **Step N** workflow is enabled in the **Actions** tab.
 - **You want to restart:** Close the exercise issue, revert your changes, then enable and run **Step 0** from the **Actions** tab. Audit entries are append-only, so revoke or supersede rules instead of deleting history.
+
+## Reviewing and teaching
+
+- **No pull request to review in step 2:** The **Add applyDiscount to the cart module** pull request is created when **Step 1** passes. If it is missing, re-run **Step 1** from the **Actions** tab; it will not open a duplicate.
+- **Your comment did not change anything:** In step 2 that is the expected result. Ordinary feedback must never modify the instructions file.
+- **`/copilot-learn` did nothing:** It must be the first line of the comment, with no backticks, quotes, or leading text. A comment that mentions the command mid-sentence is ignored on purpose.
+- **Copilot did not write tests in step 4:** Model output varies. Write the test yourself and continue; the graded artifact is the test file, not the chat.
+- **`applyDiscount is not defined` in the tests:** Add it to the `require` line at the top of `test/cart.test.js`.
+- **Step 4 says applyDiscount is missing:** Run `git switch add-discount` first. The function only exists on the review branch until that pull request merges.
+- **Unsure what your policy allows:** Run `npm run decide` for a table of how each kind of correction would be classified.
 
 ## Repository setup problems
 
 - **Candidate PR is not created:** Open **Settings** > **Actions** > **General**, select **Read and write permissions**, enable **Allow GitHub Actions to create and approve pull requests**, and save.
 - **Auto-merge option is unavailable:** Open **Settings** > **General** and enable **Allow auto-merge** under **Pull Requests**.
 - **Allow auto-merge is greyed out:** The most common cause is a **private repository on GitHub Free**, where auto-merge is unavailable. Make the repository public, upgrade the plan, or use the manual-merge fallback. Select **Why is this option disabled?** to confirm the reason for your repository.
-- **Auto-merge unavailable for any reason:** Continue without it. Steps 8–10 grade your policy, evaluator, and tests. Verify the evaluator labels a safe candidate `copilot-auto-merge-approved` and an unsafe candidate `copilot-needs-human-review`, then merge manually after checks pass.
+- **Auto-merge unavailable for any reason:** Continue without it. Steps 5–8 grade your policy, evaluator, and instructions file. Verify the evaluator labels a safe candidate `copilot-auto-merge-approved` and an unsafe candidate `copilot-needs-human-review`, then merge manually after checks pass.
 - **A pull request is blocked by the required check:** **Evaluate instruction candidate** runs on every pull request and passes immediately without the `copilot-instruction-candidate` label. If it never reports, confirm Actions is enabled and the workflow exists on the default branch.
 - **"Evaluate instruction candidate" is not found in Add checks:** The picker only suggests checks that ran recently, and it may not list a check that never ran on the default branch. Type the name exactly, `Evaluate instruction candidate`, and select it. If it still will not save, open any small pull request so the check reports once, then retry within a few minutes.
 - **Check name mismatch:** The required check name must match the workflow job name exactly, including capitalization. It is defined by `name: Evaluate instruction candidate` in `.github/workflows/evaluate-instruction.yml`.

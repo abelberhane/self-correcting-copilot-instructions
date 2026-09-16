@@ -1,17 +1,15 @@
 name: Step 2
 
 on:
-  push:
-    # Exercise workflows stay disabled until the previous step enables them,
-    # so this trigger only fires while step 2 is the active step.
-    branches-ignore:
-      - main
+  issue_comment:
+    types: [created]
   workflow_dispatch:
 
 permissions:
   contents: read
   actions: write
   issues: write
+  pull-requests: read
 
 env:
   STEP_NEXT_FILE: ".github/steps/3-step.md"
@@ -25,6 +23,7 @@ jobs:
     name: Check step work
     runs-on: ubuntu-latest
     needs: [find_exercise]
+    if: github.event_name != 'issue_comment' || (github.event.issue.pull_request && github.actor != 'github-actions[bot]')
     env:
       ISSUE_REPOSITORY: ${{ github.repository }}
       ISSUE_NUMBER: ${{ needs.find_exercise.outputs.issue-number }}
@@ -71,6 +70,8 @@ jobs:
       - name: Check step 2
         id: check-step
         continue-on-error: true
+        env:
+          COMMENT_BODY: ${{ github.event.comment.body }}
         run: npm run check-step -- 2
 
       - name: Update comment - step results
@@ -84,11 +85,11 @@ jobs:
           vars: |
             step_number: 2
             results_table:
-              - description: "Generated candidates satisfy the closed candidate schema"
+              - description: "Ordinary review feedback was left, and the instructions did not change"
                 passed: ${{ steps.check-step.outcome == 'success' }}
             tips:
-              - "`additionalProperties: false` is what stops unknown fields from riding along."
-              - "The workflow log for this run prints the exact assertion that failed."
+              - "Write the comment in your own words. `/copilot-learn` comes in the next step."
+              - "An unchanged Learned rules section is the expected result here."
 
       # END: Check practical exercise
 

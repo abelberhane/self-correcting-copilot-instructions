@@ -1,35 +1,55 @@
-## Step 5: Block unsafe candidates
+## Step 5: Decide what can merge itself
 
-> **Lesson 1 of 2 · Governed corrections** · Step 5 of 10
+> **Lesson 2 of 2 · Let it merge itself** · Step 5 of 8
 
-### 📖 Theory: Most proposals should be rejected
+### 📖 Theory: Not every correction deserves the same scrutiny
 
-A safe pipeline is defined by what it refuses. Validation must deterministically reject secrets, prompt injection, duplicates, contradictions, overfit rules, missing provenance, and anything that tries to change governance.
+Lesson 1 worked, but it asked you to review a pull request whose entire content was four lines you wrote yourself. Do that twenty times and you will start rubber-stamping — which is worse than not reviewing at all, because now the ceremony provides false comfort.
 
-That last category is the most important. A candidate must never be able to modify workflows, validators, `CODEOWNERS`, permissions, or the auto-merge policy. If instructions could rewrite their own guardrails, every other control becomes decorative.
+The fix is not "review less carefully." It is to decide **in advance, in writing**, which corrections are boring enough to merge themselves.
 
-> [!IMPORTANT]
-> A candidate that could edit its own guardrails is the highest-severity failure in this design. `PROTECTED_PATHS` in `scripts/lib.js` is what prevents it.
+That decision lives in `.github/auto-merge-policy.yml`, and it is deliberately mechanical. The same correction always gets the same answer, with no model call and nothing to argue about:
+
+| Signal | Why it matters |
+| --- | --- |
+| **Category** | `SECURITY`, `ARCH`, and `PROCESS` change how the team operates |
+| **Scope** | `path:src/` teaches a corner; `repository` rewrites everything |
+| **Length** | A rule too long to skim is too long to approve unread |
+| **Action** | Adding is reversible; superseding and revoking change existing guidance |
 
 > [!NOTE]
-> Each unsafe fixture in `test/fixtures/unsafe/` represents one real attack or mistake. They should all fail, each for its own specific reason.
+> Everything that is not provably low risk still goes to a human. The policy narrows what automation may do; it never widens it.
 
-### ⌨️ Activity: Prove unsafe corrections are refused
+### ⌨️ Activity: Turn on the policy and see what it decides
 
-1. Review the fixtures in `test/fixtures/unsafe/`.
-
-1. Open `validateCandidate` in `scripts/lib.js`.
-
-1. Confirm secrets, injection, and governance changes are each detected.
-
-1. Confirm duplicates, contradictions, overfit wording, and missing provenance are rejected.
-
-1. Run the full suite, then commit and push.
+1. Preview what your policy does right now.
 
    ```bash
-   npm test
-   npm run check-step -- 5
-   git commit --allow-empty -am "Block unsafe candidates"
+   npm run decide
+   ```
+
+   Every row says the policy is disabled. Nothing can merge itself yet.
+
+1. Open `.github/auto-merge-policy.yml` and turn it on.
+
+   ```yaml
+   enabled: true
+   ```
+
+1. Confirm the guardrails below it. `allowed_risk` must stay `low`, and `blocked_categories` must contain `ARCH`, `PROCESS`, and `SECURITY`.
+
+1. Run the preview again.
+
+   ```bash
+   npm run decide
+   ```
+
+   Now you should see the split: narrow rules auto-merge, while repository-wide mandates, security rules, and process changes go to human review.
+
+1. Commit and push.
+
+   ```bash
+   git commit -am "Enable low-risk auto-merge"
    git push
    ```
 
@@ -38,8 +58,9 @@ That last category is the most important. A candidate must never be able to modi
 <details>
 <summary><b>Having trouble? 🤷</b></summary><br/>
 
-- Read `docs/threat-model.md` to see which control each fixture targets.
-- Fix the specific validator that missed the case rather than adding a broad catch-all.
-- The failing test name tells you exactly which fixture slipped through.
+- Change only `enabled`. The other values are already calibrated for this exercise.
+- If `npm run decide` still shows everything under human review, check that `allowed_risk` is `low` and that you saved the file.
+- Removing a category from `blocked_categories` makes that category eligible for automation. The check will fail if `ARCH`, `PROCESS`, or `SECURITY` is missing.
+- The policy file itself is a protected path, so no correction can ever edit it. That is deliberate.
 
 </details>

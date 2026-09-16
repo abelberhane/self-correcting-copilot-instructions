@@ -2,16 +2,16 @@ name: Step 6
 
 on:
   push:
-    # Exercise workflows stay disabled until the previous step enables them,
-    # so this trigger only fires while step 6 is the active step.
+    # Candidate branches are pushed by automation, not by the learner.
     branches-ignore:
-      - main
+      - 'copilot-instruction/**'
   workflow_dispatch:
 
 permissions:
   contents: read
   actions: write
   issues: write
+  pull-requests: read
 
 env:
   STEP_NEXT_FILE: ".github/steps/7-step.md"
@@ -68,9 +68,24 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Read repository settings
+        id: settings
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # A missing ruleset or protection entry means the learner has not set it up yet.
+          protected=$(gh api "repos/${{ github.repository }}/rulesets" --jq '[.[] | select(.target=="branch")] | length' 2>/dev/null || echo 0)
+          legacy=$(gh api "repos/${{ github.repository }}/branches/main/protection" --jq '.required_status_checks.contexts | length' 2>/dev/null || echo 0)
+          automerge=$(gh api "repos/${{ github.repository }}" --jq '.allow_auto_merge' 2>/dev/null || echo false)
+          if [ "$protected" != "0" ] || [ "$legacy" != "0" ]; then echo "main_protected=true" >> "$GITHUB_OUTPUT"; else echo "main_protected=false" >> "$GITHUB_OUTPUT"; fi
+          echo "auto_merge=$automerge" >> "$GITHUB_OUTPUT"
+
       - name: Check step 6
         id: check-step
         continue-on-error: true
+        env:
+          MAIN_PROTECTED: ${{ steps.settings.outputs.main_protected }}
+          AUTO_MERGE_ALLOWED: ${{ steps.settings.outputs.auto_merge }}
         run: npm run check-step -- 6
 
       - name: Update comment - step results
@@ -84,11 +99,11 @@ jobs:
           vars: |
             step_number: 6
             results_table:
-              - description: "An active learned rule with complete provenance exists inside the boundary markers"
+              - description: "The main branch requires the evaluator check and auto-merge is allowed"
                 passed: ${{ steps.check-step.outcome == 'success' }}
             tips:
-              - "The maintainer-controlled section must be byte-identical before and after."
-              - "The workflow log for this run prints the exact assertion that failed."
+              - "The status check only appears in the ruleset picker after it has run once."
+              - "Do not add a bypass list. Auto-merge should queue, never override."
 
       # END: Check practical exercise
 

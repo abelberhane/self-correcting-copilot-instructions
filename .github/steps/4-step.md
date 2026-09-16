@@ -1,44 +1,62 @@
-## Step 4: Generate an instruction-update PR
+## Step 4: Watch the rule take effect
 
-> **Lesson 1 of 2 · Governed corrections** · Step 4 of 10
+> **Lesson 1 of 2 · Teach the repository something** · Step 4 of 8
 
-### 📖 Theory: Propose changes, never push them
+### 📖 Theory: The correction is now part of the context
 
-Automation should never write directly to the default branch. Instead it opens a **candidate pull request** that a human can read, question, and revert.
+Your rule is merged, which means it is no longer advice sitting in a comment thread. It is in `.github/copilot-instructions.md`, and Copilot reads that file before it answers anything in this repository.
 
-Two boundaries matter here. The instruction file has a maintainer-controlled section that automation must never touch, and a learned-rules section it may extend. Rendering happens strictly inside those markers. Alongside the instruction change, the workflow writes the candidate, its fingerprint, and an audit entry, so the change carries its own history.
+The loop you just closed looks like this:
 
-> [!NOTE]
-> The workflow also records provenance linking back to the original comment, which is what makes review and rollback possible later.
+```mermaid
+flowchart LR
+    A[Reviewer spots<br/>a problem] --> B[Explicit<br/>correction]
+    B --> C[Automation opens<br/>a pull request]
+    C --> D[Human reviews<br/>and merges]
+    D --> E[Copilot follows<br/>the rule]
+    E -.->|next review| A
+```
 
-### ⌨️ Activity: Allow Actions to open pull requests
+Now collect the payoff. You are going to ask Copilot for the exact thing that started this — and this time you should not have to ask for tests.
 
-The proposal workflow opens a pull request on your behalf, so GitHub Actions needs permission to do that.
+### ⌨️ Activity: Ask Copilot for the missing tests
 
-1. In your repository, select **Settings** > **Actions** > **General**.
-
-1. Under **Workflow permissions**, select **Read and write permissions**.
-
-1. Select **Allow GitHub Actions to create and approve pull requests**.
-
-1. Select **Save**.
-
-### ⌨️ Activity: Open a reviewable candidate pull request
-
-1. Open `.github/workflows/propose-instruction.yml`.
-
-1. Confirm it verifies trust, parses the comment, and validates the candidate before writing anything.
-
-1. Confirm it creates a dedicated branch instead of committing to the default branch.
-
-1. Confirm it renders instructions, writes audit and fingerprint data, and opens a pull request.
-
-1. Preview the candidate the pipeline would produce, then commit and push.
+1. Check out the pull request branch and bring in the rule you just merged.
 
    ```bash
-   npm run simulate
-   npm run check-step -- 4
-   git commit --allow-empty -am "Generate an instruction-update pull request"
+   git fetch origin
+   git switch add-discount
+   git merge origin/main
+   ```
+
+1. Open Copilot Chat and ask for the change *without mentioning tests at all*:
+
+   ```text
+   Add applyDiscount to this project properly.
+   ```
+
+1. Read what comes back. Because your rule is now in context, Copilot should propose a test for `applyDiscount` even though you never asked for one. That is the rule doing its job.
+
+### ⌨️ Activity: Commit the tests and finish the pull request
+
+Now turn what you just saw into something the grader can verify.
+
+1. Add the tests to `test/cart.test.js`. Cover at least the ordinary case:
+
+   ```js
+   test('applyDiscount reduces every price by the given percent', () => {
+     const cart = addItem([], { id: 'apple', price: 10 });
+     assert.equal(applyDiscount(cart, 25)[0].price, 7.5);
+   });
+   ```
+
+1. Import `applyDiscount` at the top of the test file alongside the other functions.
+
+1. Run the suite and push.
+
+   ```bash
+   npm test
+   git commit -am "Add tests for applyDiscount"
    git push
    ```
 
@@ -47,8 +65,10 @@ The proposal workflow opens a pull request on your behalf, so GitHub Actions nee
 <details>
 <summary><b>Having trouble? 🤷</b></summary><br/>
 
-- Run `npm run simulate` to inspect the candidate the pipeline would produce.
-- If the pull request is not created, recheck the **Workflow permissions** settings above.
-- Never replace the branch and pull request flow with a direct push.
+- **Copilot did not mention tests?** Model output varies, and the lesson still holds. Write the test yourself and continue — the rule is what told you it was required.
+- **No Copilot access?** Skip the first activity entirely. The second one is the graded part.
+- **`applyDiscount is not defined`** means the import at the top of `test/cart.test.js` still needs updating.
+- The check looks for every function exported from `src/cart.js` to be referenced in `test/cart.test.js`.
+- If `git switch add-discount` fails, run `git fetch origin` first.
 
 </details>

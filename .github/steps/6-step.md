@@ -1,34 +1,45 @@
-## Step 6: Review and merge the candidate
+## Step 6: Put the automation behind branch protection
 
-> **Lesson 1 of 2 · Governed corrections** · Step 6 of 10
+> **Lesson 2 of 2 · Let it merge itself** · Step 6 of 8
 
-### 📖 Theory: Human review is the default
+### 📖 Theory: Auto-merge waits in line, it does not skip it
 
-Automation proposes; a person decides. Reviewing a candidate is not a formality, because this pull request changes the instructions that guide future work in the repository.
+"Auto-merge" sounds like the automation gets to push whenever it likes. It is the opposite. GitHub's auto-merge **queues** a pull request and merges it only once every required check has passed and every rule you set is satisfied.
 
-A good review reads four things: the rendered rule, the provenance link back to the original comment, the fingerprint that proves the rule text was not altered, and the audit entry. Only then does merging make sense, and only after required checks pass.
+That distinction is what makes the next step safe. Your policy decides what is *eligible*; branch protection decides what is *possible*. If the two ever disagree, branch protection wins.
 
-> [!NOTE]
-> The maintainer-controlled section must be identical before and after. If it changed, something rendered outside its boundary.
+So before you let anything merge itself, you make the floor solid:
 
-### ⌨️ Activity: Review and merge an instruction candidate
+- **A required check** means no pull request merges until the evaluator has passed on it, including the automation's own.
+- **No direct pushes** to `main` means every change — yours and the robot's — arrives through a pull request.
 
-1. Open the candidate pull request created by the pipeline.
+> [!IMPORTANT]
+> Never use administrator overrides or `--admin` to force a merge in this exercise. An automation that can bypass its own guardrails has none.
 
-1. In the **Files changed** tab, confirm only the learned-rules section of `.github/copilot-instructions.md` changed.
+### ⌨️ Activity: Require the evaluator check
 
-1. Follow the provenance link back to the original correction comment.
+1. Go to **Settings → Branches** and select **Add branch ruleset** (or edit an existing one).
 
-1. Confirm the candidate and audit files were added under `data/`.
+1. Target the `main` branch.
 
-1. Merge the pull request once required checks pass.
+1. Enable **Require status checks to pass**, then search for and select **Evaluate instruction candidate**.
 
-1. Confirm the merged result on your branch, then commit and push.
+1. Enable **Require a pull request before merging**.
+
+1. Save the ruleset.
+
+### ⌨️ Activity: Turn on auto-merge for the repository
+
+1. Go to **Settings → General**.
+
+1. Under **Pull Requests**, select **Allow auto-merge**.
+
+1. Confirm **Allow squash merging** is also selected. The policy specifies `method: squash`.
+
+1. Commit and push so the check can run.
 
    ```bash
-   git pull --rebase origin main
-   npm run check-step -- 6
-   git commit --allow-empty -m "Review and merge the candidate"
+   git commit --allow-empty -m "Guard auto-merge with branch protection"
    git push
    ```
 
@@ -37,8 +48,9 @@ A good review reads four things: the rendered rule, the provenance link back to 
 <details>
 <summary><b>Having trouble? 🤷</b></summary><br/>
 
-- If checks fail, update the candidate branch instead of editing the instructions by hand.
-- Never edit the maintainer-controlled section to make a check pass.
-- Confirm the rule sits between the `learned-rules` start and end markers.
+- **Cannot find the status check?** It only appears after it has run at least once. Open any pull request to trigger it, then return to the ruleset.
+- The check is named exactly **Evaluate instruction candidate**, matching `required_checks` in your policy.
+- If pushing to `main` now fails, that is branch protection working. Open a pull request instead.
+- Do not enable **Allow force pushes** or any bypass list. The next two steps assume the floor holds.
 
 </details>

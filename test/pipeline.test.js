@@ -14,10 +14,16 @@ test('supersedes and revokes only active learned rules', () => { const before=fs
 
 test('malformed candidates fail schema validation without crashing', () => { assert.equal(validateCandidate({ rule: 4 }, []).valid, false); });
 test('auto-merge requires every policy condition', () => {
-  const c=candidate(); const policy=readYaml('.github/auto-merge-policy.yml');
+  const c=candidate();
+  // The template ships with the policy switched off; the learner enables it in step 5.
+  const policy={...readYaml('.github/auto-merge-policy.yml'),enabled:true};
   const context={labels:['copilot-instruction-candidate'],paths:['.github/copilot-instructions.md',`data/candidates/${c.id}.json`,`data/audit/${c.id}.jsonl`,`data/fingerprints/${c.id}.json`]};
   assert.equal(evaluatePolicy(c,policy,context).autoMergeEligible,true);
   assert.equal(evaluatePolicy(c,{...policy,enabled:false},context).autoMergeEligible,false);
   assert.equal(evaluatePolicy(c,policy,{...context,paths:[...context.paths,'.github/workflows/pwn.yml']}).autoMergeEligible,false);
+  // Raising the ceiling must allow more, not less.
+  assert.equal(evaluatePolicy(c,{...policy,allowed_risk:'medium'},context).autoMergeEligible,true);
+  // A sensitive category is high risk and can never qualify.
+  assert.equal(evaluatePolicy({...c,category:'SECURITY'},policy,context).autoMergeEligible,false);
 });
 test('candidate and policy schemas are executable', () => { assert.equal(validateWithSchema(candidate(),'schemas/candidate.schema.json').valid,true); assert.equal(validateWithSchema(readYaml('.github/auto-merge-policy.yml'),'schemas/auto-merge-policy.schema.json').valid,true); });

@@ -21,7 +21,7 @@ jobs:
     uses: skills/exercise-toolkit/.github/workflows/start-exercise.yml@v0.9.1
     with:
       exercise-title: "Self-correcting Copilot instructions"
-      intro-message: "Welcome! In this exercise you'll build a governed pipeline that turns an explicit maintainer correction into a reviewable pull request against your repository instructions, then safely automates the low-risk cases. Everything runs deterministically on Node.js 20 - no model API, no external service, and no secrets. Let's get started! 🚀"
+      intro-message: "Welcome! You are about to review a pull request, spot a problem, and turn your feedback into a rule that Copilot actually follows - instead of a comment everyone forgets. In Lesson 2 you will let the safe corrections merge themselves. Everything runs deterministically on Node.js 20, with no model API and no secrets. Let's get started! 🚀"
 
   provision_labels:
     name: Provision pipeline labels

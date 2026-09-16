@@ -8,6 +8,7 @@ const YAML = require('yaml');
 const CATEGORIES = ['STYLE', 'CODE', 'ARCH', 'TOOL', 'PROCESS', 'DATA', 'UX', 'TEST', 'SECURITY', 'OTHER'];
 const ACTIONS = ['add', 'supersede', 'revoke'];
 const ALLOWED_FIELDS = ['category', 'rule', 'rationale', 'scope', 'action', 'target_id'];
+const RISK_ORDER = ['low', 'medium', 'high'];
 const PROTECTED_PATHS = ['.github/workflows/', 'schemas/', 'scripts/', 'CODEOWNERS', '.github/learning-config.yml', '.github/auto-merge-policy.yml'];
 
 function fail(message) { const error = new Error(message); error.code = 'VALIDATION_FAILED'; throw error; }
@@ -93,10 +94,10 @@ function parseRules(contents) {
 
 function evaluatePolicy(candidate, policy, context) {
   const schema = validateWithSchema(policy, path.join(__dirname, '..', 'schemas', 'auto-merge-policy.schema.json'));
-  const evaluation = evaluateRisk(candidate);
+  const evaluation = evaluateRisk(candidate, policy);
   const reasons = [...schema.errors, ...evaluation.reasons];
   if (!policy.enabled) reasons.push('Auto-merge policy is disabled.');
-  if (evaluation.risk !== policy.allowed_risk) reasons.push(`Risk ${evaluation.risk} is not allowed.`);
+  if (RISK_ORDER.indexOf(evaluation.risk) > RISK_ORDER.indexOf(policy.allowed_risk)) reasons.push(`Risk ${evaluation.risk} exceeds the allowed maximum of ${policy.allowed_risk}.`);
   if (policy.blocked_categories.includes(candidate.category)) reasons.push(`Category ${candidate.category} is blocked.`);
   if (candidate.rule.length > policy.max_rule_length) reasons.push('Rule exceeds policy maximum length.');
   const missingLabels = policy.required_labels.filter((label) => !context.labels.includes(label));
@@ -122,11 +123,13 @@ function makeCandidate(fields, event, now = new Date().toISOString()) {
   };
 }
 
-function evaluateRisk(candidate) {
+function evaluateRisk(candidate, policy = {}) {
   const reasons = [];
+  const sensitive = policy.blocked_categories || ['ARCH', 'PROCESS', 'SECURITY'];
+  const maxLength = policy.max_rule_length || 180;
   let risk = 'low';
-  if (['ARCH','PROCESS','SECURITY'].includes(candidate.category)) { risk = 'high'; reasons.push(`${candidate.category} requires human review.`); }
-  else if (candidate.rule.length > 180 || candidate.scope === 'repository' || candidate.action !== 'add') { risk = 'medium'; reasons.push('Broad, long, or lifecycle-changing rules require human review.'); }
+  if (sensitive.includes(candidate.category)) { risk = 'high'; reasons.push(`${candidate.category} requires human review.`); }
+  else if (candidate.rule.length > maxLength || candidate.scope === 'repository' || candidate.action !== 'add') { risk = 'medium'; reasons.push('Broad, long, or lifecycle-changing rules require human review.'); }
   if (/\b(always|never|must)\b/i.test(candidate.rule) && candidate.scope === 'repository') { risk = risk === 'high' ? 'high' : 'medium'; reasons.push('Absolute repository-wide wording is not low risk.'); }
   return { risk, reasons, autoMergeEligible: risk === 'low' };
 }
