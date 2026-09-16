@@ -2,16 +2,16 @@ name: Step 5
 
 on:
   push:
-    # Exercise workflows stay disabled until the previous step enables them,
-    # so this trigger only fires while step 5 is the active step.
+    # Candidate branches are pushed by automation, not by the learner.
     branches-ignore:
-      - main
+      - 'copilot-instruction/**'
   workflow_dispatch:
 
 permissions:
   contents: read
   actions: write
   issues: write
+  pull-requests: read
 
 env:
   STEP_NEXT_FILE: ".github/steps/6-step.md"
@@ -84,11 +84,11 @@ jobs:
           vars: |
             step_number: 5
             results_table:
-              - description: "Every unsafe fixture is rejected while the valid fixture still passes"
+              - description: "Auto-merge policy is enabled with the sensitive categories blocked"
                 passed: ${{ steps.check-step.outcome == 'success' }}
             tips:
-              - "`docs/threat-model.md` maps each fixture to the control it targets."
-              - "The workflow log for this run prints the exact assertion that failed."
+              - "Run `npm run decide` to preview what your policy allows."
+              - "`ARCH`, `PROCESS`, and `SECURITY` must stay in `blocked_categories`."
 
       # END: Check practical exercise
 

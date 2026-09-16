@@ -1,34 +1,42 @@
 # Self-correcting Copilot instructions
 
-_Turn explicit maintainer corrections into reviewed, auditable updates to your repository instructions._
+_Leave a review comment once, and have Copilot remember it forever._
 
 ## Welcome
 
-Repository instructions drift. A maintainer explains the same correction in review over and over, and nothing durable changes. This exercise fixes that with a governed pipeline: a trusted maintainer submits one explicit `/copilot-learn` correction, and automation converts it into a validated pull request against `.github/copilot-instructions.md` that a human reviews and merges.
+You review a pull request and spot something you don't want. You explain it clearly in a comment. The author fixes it, everyone moves on, and the knowledge evaporates — because a review comment is written into a box that nothing ever reads again.
 
-- **Who is this for**: Developers, maintainers, and platform engineers comfortable with GitHub Actions and JavaScript.
+Meanwhile `.github/copilot-instructions.md` sits in your repository steering every suggestion Copilot makes, and it only changes when somebody remembers to go edit it by hand.
+
+This exercise connects the two. You'll review a real pull request, leave a correction, and watch automation turn it into a rule Copilot actually follows. Then you'll let the safe corrections merge themselves.
+
+- **Who is this for**: Anyone who reviews pull requests and uses GitHub Copilot.
 - **What you'll learn**:
-  - How to trust actor identity rather than labels or wording.
-  - How to treat comment text as untrusted data that never reaches a shell.
-  - How to validate proposed changes against a closed schema with provenance and fingerprints.
-  - How to manage a rule lifecycle without erasing history.
-  - How to classify risk deterministically and automate only what you can prove is safe.
-- **What you'll build**: A secure, deterministic pipeline that proposes instruction updates as reviewable pull requests, blocks unsafe corrections, and queues only low-risk candidates for guarded auto-merge.
-- **Prerequisites**: Familiarity with [GitHub Actions](https://docs.github.com/en/actions) and pull request reviews. [Node.js 20](https://nodejs.org) if you want to run the checks locally.
+  - How `.github/copilot-instructions.md` steers Copilot, and why hand-editing it doesn't scale.
+  - How to turn a review comment into a durable rule with one explicit command.
+  - Why casual feedback must *never* change your instructions, and what makes a correction deliberate.
+  - How to let low-risk corrections merge themselves without weakening branch protection.
+- **What you'll build**: A working loop where an explicit `/copilot-learn` correction becomes a reviewed pull request against your instructions file — and, once you trust it, merges on its own.
+- **Prerequisites**: You should be comfortable reviewing a pull request. [Node.js 20](https://nodejs.org) if you want to run the checks locally.
 - **How long**: 45-60 minutes across two lessons.
 
-In this exercise, you will:
+### Lesson 1 · Teach the repository something
 
-1. Configure trusted actors and explicit correction signals
-2. Complete the candidate schema
-3. Parse a strict `/copilot-learn` command
-4. Generate an instruction-update pull request
-5. Block unsafe candidates
-6. Review and merge the candidate
-7. Supersede or revoke a rule
-8. Configure deterministic low-risk policy
-9. Enable guarded pull request auto-merge
-10. Verify safe and unsafe fixtures
+| Step | What you'll do |
+| --- | --- |
+| **1** | See how instructions work today by adding a rule by hand |
+| **2** | Review a pull request and watch good feedback disappear |
+| **3** | Turn that feedback into a rule with `/copilot-learn` |
+| **4** | Ask Copilot for code and watch it follow your new rule |
+
+### Lesson 2 · Let it merge itself
+
+| Step | What you'll do |
+| --- | --- |
+| **5** | Decide which corrections are safe enough to merge themselves |
+| **6** | Put the automation behind branch protection |
+| **7** | Leave a correction and watch it land without you |
+| **8** | Attack your own pipeline and confirm it holds |
 
 > [!IMPORTANT]
 > This exercise automates **repository instructions**. It does not train GitHub Copilot and it does not make Copilot self-learning. See [`docs/platform-boundary.md`](docs/platform-boundary.md) for exactly where that line sits.
@@ -57,8 +65,8 @@ If the exercise isn't ready in 20 seconds:
 
 Two repository settings are configured during the exercise itself, so you do not need them up front:
 
-- **Step 4** turns on read and write workflow permissions so Actions can open the candidate pull request.
-- **Step 9** requires the evaluator status check and turns on auto-merge.
+- **Step 3** relies on Actions being allowed to create pull requests, under **Settings -> Actions -> General**.
+- **Step 6** adds branch protection and turns on auto-merge.
 
 </details>
 
@@ -78,31 +86,7 @@ flowchart LR
 
 `.github/copilot-instructions.md` has two sections. Automation may never touch the maintainer-controlled section, and may only extend the learned-rules section between its boundary markers. Every learned rule carries a stable ID, category, lifecycle state, provenance, and fingerprint.
 
-## Lessons and steps
-
-### Lesson 1 · Governed corrections (steps 1-7)
-
-Turn a trusted maintainer correction into a reviewed instruction pull request.
-
-| Step | Title | What you will do |
-|---:|---|---|
-| 1 | Configure trusted actors and explicit signals | Decide who may submit corrections, and require the exact `/copilot-learn` signal on a Copilot-associated pull request |
-| 2 | Complete the candidate schema | Define the closed data shape for a rule: stable ID, category, lifecycle state, provenance, and fingerprint |
-| 3 | Parse a strict command | Read the comment as untrusted data, accept only documented fields, and reject malformed or unknown input |
-| 4 | Generate an instruction-update PR | Render the rule inside the learned-rules boundary, write audit records, and open a candidate pull request |
-| 5 | Block unsafe candidates | Reject secrets, prompt injection, duplicates, contradictions, overfitting, and governance changes |
-| 6 | Review and merge the candidate | Inspect the diff, provenance, and audit trail, then merge the candidate after checks pass |
-| 7 | Supersede or revoke a rule | Retire a rule without deleting history by transitioning it to superseded or revoked |
-
-### Lesson 2 · Guarded automation (steps 8-10)
-
-Let only provably low-risk candidates merge automatically, without weakening protections.
-
-| Step | Title | What you will do |
-|---:|---|---|
-| 8 | Configure deterministic low-risk policy | Set deterministic rules for risk, allowed paths, blocked categories, and required labels and checks |
-| 9 | Enable guarded PR auto-merge | Queue only policy-qualified pull requests with native auto-merge, never bypassing required checks |
-| 10 | Verify safe and unsafe fixtures | Prove the valid correction passes and every unsafe fixture is still blocked |
+The pipeline is deterministic: no model API, no external service, and no secrets. The same correction always produces the same result, which is what makes it reviewable.
 
 ## Run the checks locally
 
@@ -110,14 +94,16 @@ The whole pipeline is deterministic. No model API, external service, or secret i
 
 ```bash
 npm ci
-npm test        # unit tests over valid and unsafe fixtures
+npm test          # unit tests over the pipeline and the sample app
+npm run coverage  # which exported functions still have no test
+npm run decide    # what your auto-merge policy would do with each correction
 npm run validate  # repository structure and workflow safety
 npm run simulate  # print the candidate a correction would produce
 ```
 
 ## Reset or retry
 
-Only one step workflow is enabled at a time: each step disables itself and enables the next one when it passes. Re-run a failed step from the **Actions** tab after applying its feedback. To restart the exercise, close the exercise issue, revert learner changes, then enable and run **Step 0**. Candidate branches and audit entries are append-only history, so revoke or supersede rules instead of deleting that history.
+Only one step workflow is enabled at a time: each step disables itself and enables the next one when it passes. Re-run a failed step from the **Actions** tab after applying its feedback. To restart the exercise, close the exercise issue, revert learner changes, then enable and run **Step 0**. Re-running **Step 1** will not open a duplicate review pull request. Candidate branches and audit entries are append-only history, so revoke or supersede rules instead of deleting that history.
 
 > [!IMPORTANT]
 > Auto-merge uses GitHub's native auto-merge capability. It waits for branch protection and required checks, and never pushes to the default branch or bypasses protections.

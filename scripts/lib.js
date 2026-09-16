@@ -8,6 +8,7 @@ const YAML = require('yaml');
 const CATEGORIES = ['STYLE', 'CODE', 'ARCH', 'TOOL', 'PROCESS', 'DATA', 'UX', 'TEST', 'SECURITY', 'OTHER'];
 const ACTIONS = ['add', 'supersede', 'revoke'];
 const ALLOWED_FIELDS = ['category', 'rule', 'rationale', 'scope', 'action', 'target_id'];
+const RISK_ORDER = ['low', 'medium', 'high'];
 const PROTECTED_PATHS = ['.github/workflows/', 'schemas/', 'scripts/', 'CODEOWNERS', '.github/learning-config.yml', '.github/auto-merge-policy.yml'];
 
 function fail(message) { const error = new Error(message); error.code = 'VALIDATION_FAILED'; throw error; }
@@ -93,10 +94,10 @@ function parseRules(contents) {
 
 function evaluatePolicy(candidate, policy, context) {
   const schema = validateWithSchema(policy, path.join(__dirname, '..', 'schemas', 'auto-merge-policy.schema.json'));
-  const evaluation = evaluateRisk(candidate);
+  const evaluation = evaluateRisk(candidate, policy);
   const reasons = [...schema.errors, ...evaluation.reasons];
   if (!policy.enabled) reasons.push('Auto-merge policy is disabled.');
-  if (evaluation.risk !== policy.allowed_risk) reasons.push(`Risk ${evaluation.risk} is not allowed.`);
+  if (RISK_ORDER.indexOf(evaluation.risk) > RISK_ORDER.indexOf(policy.allowed_risk)) reasons.push(`Risk ${evaluation.risk} exceeds the allowed maximum of ${policy.allowed_risk}.`);
   if (policy.blocked_categories.includes(candidate.category)) reasons.push(`Category ${candidate.category} is blocked.`);
   if (candidate.rule.length > policy.max_rule_length) reasons.push('Rule exceeds policy maximum length.');
   const missingLabels = policy.required_labels.filter((label) => !context.labels.includes(label));
@@ -122,11 +123,13 @@ function makeCandidate(fields, event, now = new Date().toISOString()) {
   };
 }
 
-function evaluateRisk(candidate) {
+function evaluateRisk(candidate, policy = {}) {
   const reasons = [];
+  const sensitive = policy.blocked_categories || ['ARCH', 'PROCESS', 'SECURITY'];
+  const maxLength = policy.max_rule_length || 180;
   let risk = 'low';
-  if (['ARCH','PROCESS','SECURITY'].includes(candidate.category)) { risk = 'high'; reasons.push(`${candidate.category} requires human review.`); }
-  else if (candidate.rule.length > 180 || candidate.scope === 'repository' || candidate.action !== 'add') { risk = 'medium'; reasons.push('Broad, long, or lifecycle-changing rules require human review.'); }
+  if (sensitive.includes(candidate.category)) { risk = 'high'; reasons.push(`${candidate.category} requires human review.`); }
+  else if (candidate.rule.length > maxLength || candidate.scope === 'repository' || candidate.action !== 'add') { risk = 'medium'; reasons.push('Broad, long, or lifecycle-changing rules require human review.'); }
   if (/\b(always|never|must)\b/i.test(candidate.rule) && candidate.scope === 'repository') { risk = risk === 'high' ? 'high' : 'medium'; reasons.push('Absolute repository-wide wording is not low risk.'); }
   return { risk, reasons, autoMergeEligible: risk === 'low' };
 }
@@ -158,5 +161,20 @@ function updateInstructions(contents, candidate) {
   return `${protectedBefore}\n${learned.trim()}\n\n${contents.slice(endAt)}`;
 }
 
+// Reads the functions a module exports and reports which ones a test file exercises.
+// This is how the exercise proves a learned rule such as "always add tests" took effect:
+// it inspects the real source and the real tests, not a chat transcript.
+function testCoverage(sourceFile, testFile) {
+  const source = fs.readFileSync(sourceFile, 'utf8');
+  const match = source.match(/module\.exports\s*=\s*\{([^}]*)\}/);
+  if (!match) fail(`${sourceFile} does not export a module.exports object.`);
+  const exported = match[1].split(',').map((name) => name.split(':')[0].trim()).filter(Boolean);
+  if (!exported.length) fail(`${sourceFile} does not export any functions.`);
+  const tests = fs.existsSync(testFile) ? fs.readFileSync(testFile, 'utf8') : '';
+  const covered = exported.filter((name) => new RegExp(`\\b${name}\\b`).test(tests));
+  const uncovered = exported.filter((name) => !covered.includes(name));
+  return { exported, covered, uncovered };
+}
+
 function readJson(file) { return JSON.parse(fs.readFileSync(file, 'utf8')); }
-module.exports = { CATEGORIES, parseCorrection, assertTrusted, makeCandidate, validateCandidate, validateWithSchema, evaluateRisk, evaluatePolicy, assertAllowedPaths, renderRule, updateInstructions, parseRules, fingerprint, stableId, fail, readJson, readYaml };
+module.exports = { CATEGORIES, testCoverage, parseCorrection, assertTrusted, makeCandidate, validateCandidate, validateWithSchema, evaluateRisk, evaluatePolicy, assertAllowedPaths, renderRule, updateInstructions, parseRules, fingerprint, stableId, fail, readJson, readYaml };

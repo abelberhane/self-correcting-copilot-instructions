@@ -2,16 +2,16 @@ name: Step 4
 
 on:
   push:
-    # Exercise workflows stay disabled until the previous step enables them,
-    # so this trigger only fires while step 4 is the active step.
+    # Candidate branches are pushed by automation, not by the learner.
     branches-ignore:
-      - main
+      - 'copilot-instruction/**'
   workflow_dispatch:
 
 permissions:
   contents: read
   actions: write
   issues: write
+  pull-requests: read
 
 env:
   STEP_NEXT_FILE: ".github/steps/5-step.md"
@@ -84,11 +84,11 @@ jobs:
           vars: |
             step_number: 4
             results_table:
-              - description: "The proposal workflow branches, renders, records an audit entry, and opens a pull request"
+              - description: "Every function exported from src/cart.js has a test"
                 passed: ${{ steps.check-step.outcome == 'success' }}
             tips:
-              - "Run `npm run simulate` to inspect the candidate the pipeline would produce."
-              - "The workflow log for this run prints the exact assertion that failed."
+              - "Run `npm run coverage` to see which exports are still untested."
+              - "Remember to import `applyDiscount` at the top of the test file."
 
       # END: Check practical exercise
 

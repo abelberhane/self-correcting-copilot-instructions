@@ -2,16 +2,16 @@ name: Step 1
 
 on:
   push:
-    # Exercise workflows stay disabled until the previous step enables them,
-    # so this trigger only fires while step 1 is the active step.
+    # Candidate branches are pushed by automation, not by the learner.
     branches-ignore:
-      - main
+      - 'copilot-instruction/**'
   workflow_dispatch:
 
 permissions:
   contents: read
   actions: write
   issues: write
+  pull-requests: read
 
 env:
   STEP_NEXT_FILE: ".github/steps/2-step.md"
@@ -84,11 +84,11 @@ jobs:
           vars: |
             step_number: 1
             results_table:
-              - description: "Trusted associations and the exact `/copilot-learn` command are configured"
+              - description: "A new maintainer rule was added in the maintainer-controlled section"
                 passed: ${{ steps.check-step.outcome == 'success' }}
             tips:
-              - "A label never proves identity. Keep the author association check in place."
-              - "The workflow log for this run prints the exact assertion that failed."
+              - "Add your rule above the `<!-- learned-rules:start -->` marker."
+              - "The Learned rules section should stay untouched in this step."
 
       # END: Check practical exercise
 
@@ -96,9 +96,52 @@ jobs:
         if: ${{ steps.check-step.outcome != 'success' }}
         run: exit 1
 
+  create_review_pull_request:
+    name: Create the pull request to review
+    needs: [check_step_work]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Open the add-discount pull request
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Idempotent: re-running this step must not open a second pull request.
+          if gh pr list --head add-discount --state open --json number --jq 'length' | grep -qv '^0$'; then
+            echo "The review pull request already exists."
+            exit 0
+          fi
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git switch -c add-discount origin/${{ github.event.repository.default_branch }}
+          node scripts/open-review-pr.js src/cart.js
+          git add src/cart.js
+          git commit -m "Add applyDiscount to the cart module"
+          git push -f origin add-discount
+          gh pr create \
+            --base "${{ github.event.repository.default_branch }}" \
+            --head add-discount \
+            --title "Add applyDiscount to the cart module" \
+            --body "Adds a percentage discount helper to the cart.
+
+          Ready for review." \
+            --label copilot-authored
+
   post_next_step_content:
     name: Post next step content
-    needs: [find_exercise, check_step_work]
+    needs: [find_exercise, check_step_work, create_review_pull_request]
     runs-on: ubuntu-latest
     env:
       ISSUE_REPOSITORY: ${{ github.repository }}

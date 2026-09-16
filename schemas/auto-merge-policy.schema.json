@@ -31,7 +31,11 @@
       ]
     },
     "allowed_risk": {
-      "const": "low"
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ]
     },
     "required_labels": {
       "type": "array",

@@ -2,19 +2,16 @@ name: Step 8
 
 on:
   push:
-    # Exercise workflows stay disabled until the previous step enables them,
-    # so this trigger only fires while step 8 is the active step.
+    # Candidate branches are pushed by automation, not by the learner.
     branches-ignore:
-      - main
+      - 'copilot-instruction/**'
   workflow_dispatch:
 
 permissions:
   contents: read
   actions: write
   issues: write
-
-env:
-  STEP_NEXT_FILE: ".github/steps/9-step.md"
+  pull-requests: read
 
 jobs:
   find_exercise:
@@ -84,11 +81,11 @@ jobs:
           vars: |
             step_number: 8
             results_table:
-              - description: "The auto-merge policy is schema-valid, low-risk only, and blocks governance categories"
+              - description: "The governance-weakening correction never reached the instructions"
                 passed: ${{ steps.check-step.outcome == 'success' }}
             tips:
-              - "Anything ambiguous should classify upward into human review."
-              - "The workflow log for this run prints the exact assertion that failed."
+              - "A failed **Propose instruction** run is the expected outcome."
+              - "Read the log to see which guard refused the candidate first."
 
       # END: Check practical exercise
 
@@ -96,54 +93,38 @@ jobs:
         if: ${{ steps.check-step.outcome != 'success' }}
         run: exit 1
 
-  post_next_step_content:
-    name: Post next step content
+  post_review_content:
+    name: Post review content
     needs: [find_exercise, check_step_work]
     runs-on: ubuntu-latest
     env:
       ISSUE_REPOSITORY: ${{ github.repository }}
       ISSUE_NUMBER: ${{ needs.find_exercise.outputs.issue-number }}
-
     steps:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Get response templates
-        uses: actions/checkout@v6
-        with:
-          repository: skills/exercise-toolkit
-          path: exercise-toolkit
-          ref: v0.9.1
-
-      - name: Create comment - step finished
+      - name: Create comment - add review content
         uses: GrantBirki/comment@v2.1.1
         with:
           repository: ${{ env.ISSUE_REPOSITORY }}
           issue-number: ${{ env.ISSUE_NUMBER }}
-          file: exercise-toolkit/markdown-templates/step-feedback/step-finished-prepare-next-step.md
-          vars: |
-            next_step_number: 9
+          file: .github/steps/x-review.md
 
-      - name: Create comment - add step content
-        uses: GrantBirki/comment@v2.1.1
-        with:
-          repository: ${{ env.ISSUE_REPOSITORY }}
-          issue-number: ${{ env.ISSUE_NUMBER }}
-          file: ${{ env.STEP_NEXT_FILE }}
-          vars: |
-            login: ${{ github.actor }}
-            full_repo_name: ${{ github.repository }}
-
-      - name: Create comment - watching for progress
-        uses: GrantBirki/comment@v2.1.1
-        with:
-          repository: ${{ env.ISSUE_REPOSITORY }}
-          issue-number: ${{ env.ISSUE_NUMBER }}
-          file: exercise-toolkit/markdown-templates/step-feedback/watching-for-progress.md
-
-      - name: Disable current workflow and enable next one
-        run: |
-          gh workflow disable "${{ github.workflow }}"
-          gh workflow enable "Step 9"
+  disable_workflow:
+    name: Disable this workflow
+    needs: [post_review_content]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Disable current workflow
+        run: gh workflow disable "${{ github.workflow }}"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  finish_exercise:
+    name: Finish exercise
+    needs: [find_exercise, post_review_content]
+    uses: skills/exercise-toolkit/.github/workflows/finish-exercise.yml@v0.9.1
+    with:
+      issue-url: ${{ needs.find_exercise.outputs.issue-url }}
+      update-readme-with-congratulations: false
