@@ -41,3 +41,19 @@
 - **Auto-merge merges without waiting:** Confirm the ruleset is active, targets the default branch, has an empty bypass list, and lists **Evaluate instruction candidate** as required.
 - **Wording does not match the documentation:** Rulesets say **Require status checks to pass**; classic branch protection says **Require status checks to pass before merging**. Either one works.
 - **Organization policy locks a setting:** Ask a repository or organization administrator to enable it. You can still run the local deterministic simulation without these settings.
+
+## "GitHub Actions is not permitted to create or approve pull requests"
+
+New repositories block Actions from opening pull requests. This exercise depends
+on automation opening candidate pull requests, so nothing works until it is on.
+
+Step 0 turns this on for you. If your organization restricts the setting, do it
+by hand:
+
+1. Go to **Settings → Actions → General**.
+2. Under **Workflow permissions**, select **Allow GitHub Actions to create and approve pull requests**.
+3. Select **Save**.
+4. Re-run the failed job from the **Actions** tab.
+
+Leave **Read repository contents and packages permissions** selected. Every
+workflow in this exercise requests the permissions it needs explicitly.
