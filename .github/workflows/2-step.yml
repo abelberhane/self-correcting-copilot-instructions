@@ -4,12 +4,15 @@ on:
   # A reviewer can leave feedback three different ways, and each one raises a
   # different event. Listening only for issue_comment silently ignores anyone who
   # uses "Submit review" or comments inline on a file.
+  #
+  # pull_request_review_comment is deliberately absent: GitHub wraps a standalone
+  # inline comment in an implicit review, so it already arrives as
+  # pull_request_review. Listening for both would grade the same feedback twice,
+  # and the losing run fails trying to disable a workflow the winner already did.
   issue_comment:
     types: [created]
   pull_request_review:
     types: [submitted]
-  pull_request_review_comment:
-    types: [created]
   push:
     branches-ignore:
       - main
@@ -160,7 +163,10 @@ jobs:
 
       - name: Disable current workflow and enable next one
         run: |
-          gh workflow disable "${{ github.workflow }}"
+          # Two events can grade the same work (a review and its inline comment).
+          # Disabling an already-disabled workflow is an error, which would show the
+          # learner a failed check for work that actually succeeded.
+          gh workflow disable "${{ github.workflow }}" || true
           gh workflow enable "Step 3"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

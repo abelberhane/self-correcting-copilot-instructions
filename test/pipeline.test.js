@@ -58,7 +58,7 @@ test('candidate and policy schemas are executable', () => { assert.equal(validat
 test('correction and feedback workflows listen for all three review events', () => {
   for (const file of ['.github/workflows/propose-instruction.yml', '.github/workflows/2-step.yml']) {
     const yaml = fs.readFileSync(file, 'utf8');
-    for (const event of ['issue_comment', 'pull_request_review', 'pull_request_review_comment']) {
+    for (const event of ['issue_comment', 'pull_request_review']) {
       assert.match(yaml, new RegExp(`^  ${event}:`, 'm'), `${file} must handle ${event}`);
     }
     // Each event puts the text in a different place; missing a fallback means an
@@ -84,4 +84,24 @@ test('provenance links use the right anchor for each kind of feedback', () => {
   assert.equal(anchor('issue_comment'), `issuecomment-${valid.comment_id}`);
   assert.equal(anchor('review'), `pullrequestreview-${valid.comment_id}`);
   assert.equal(anchor('review_comment'), `discussion_r${valid.comment_id}`);
+});
+
+// Only the correction workflow needs the inline-comment event: an inline comment
+// arrives as an implicit review whose body is empty, so the text is visible only
+// on pull_request_review_comment. The grader must NOT listen for it, because the
+// same inline comment raises both events and two graders racing means one fails.
+test('inline comment event is handled where the text matters and nowhere else', () => {
+  const propose = fs.readFileSync('.github/workflows/propose-instruction.yml', 'utf8');
+  assert.match(propose, /^  pull_request_review_comment:/m);
+  const grader = fs.readFileSync('.github/workflows/2-step.yml', 'utf8');
+  assert.doesNotMatch(grader, /^  pull_request_review_comment:/m);
+});
+
+// A duplicate trigger must never show a red check for work that succeeded.
+test('step handoff tolerates an already-disabled workflow', () => {
+  for (let step = 1; step <= 8; step += 1) {
+    const yaml = fs.readFileSync(`.github/workflows/${step}-step.yml`, 'utf8');
+    assert.match(yaml, /gh workflow disable "\$\{\{ github\.workflow \}\}" \|\| true/,
+      `${step}-step.yml must not fail when the workflow is already disabled`);
+  }
 });
