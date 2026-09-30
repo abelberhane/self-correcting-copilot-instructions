@@ -51,3 +51,26 @@ test('auto-merge requires every policy condition', () => {
   assert.equal(evaluatePolicy({...c,category:'SECURITY'},policy,context).autoMergeEligible,false);
 });
 test('candidate and policy schemas are executable', () => { assert.equal(validateWithSchema(candidate(),'schemas/candidate.schema.json').valid,true); assert.equal(validateWithSchema(readYaml('.github/auto-merge-policy.yml'),'schemas/auto-merge-policy.schema.json').valid,true); });
+
+// A reviewer can leave feedback as a timeline comment, an inline file comment, or
+// a submitted review. Listening only for issue_comment silently ignores the last
+// two, which made the exercise look broken for anyone who used "Submit review".
+test('correction and feedback workflows listen for all three review events', () => {
+  for (const file of ['.github/workflows/propose-instruction.yml', '.github/workflows/2-step.yml']) {
+    const yaml = fs.readFileSync(file, 'utf8');
+    for (const event of ['issue_comment', 'pull_request_review', 'pull_request_review_comment']) {
+      assert.match(yaml, new RegExp(`^  ${event}:`, 'm'), `${file} must handle ${event}`);
+    }
+    // Each event puts the text in a different place; missing a fallback means an
+    // empty body reaches the parser.
+    assert.match(yaml, /github\.event\.comment\.body \|\| github\.event\.review\.body/,
+      `${file} must read the body from whichever event fired`);
+  }
+});
+
+test('propose-instruction resolves the pull request number for every event', () => {
+  const yaml = fs.readFileSync('.github/workflows/propose-instruction.yml', 'utf8');
+  assert.doesNotMatch(yaml, /github\.event\.issue\.number(?! \|\|)/,
+    'issue.number is null on review events; use the PR_NUMBER fallback instead');
+  assert.match(yaml, /github\.event\.comment\.id \|\| github\.event\.review\.id/);
+});

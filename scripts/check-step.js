@@ -76,7 +76,7 @@ const steps = {
   4() {
     const coverage = testCoverage('src/cart.js', 'test/cart.test.js');
     assert(coverage.exported.includes('applyDiscount'),
-      'src/cart.js does not export applyDiscount. Check out the add-discount branch before running this check.');
+      'src/cart.js does not export applyDiscount. Make sure you are working on the add-discount branch.');
     assert(coverage.uncovered.length === 0,
       `These exported functions have no test: ${coverage.uncovered.join(', ')}. That is exactly what the rule you just taught asks for.`);
   },
@@ -113,7 +113,7 @@ const steps = {
   7() {
     const rules = taughtRules();
     assert(rules.length >= 2,
-      `Found ${rules.length} learned rule(s), expected 2. Post the second correction and let auto-merge land it, then run "git pull --rebase origin main".`);
+      `Found ${rules.length} learned rule(s), expected 2. Post the second correction, let auto-merge land it, then re-run this step's workflow from the Actions tab.`);
     assert(rules.every((rule) => rule.state === 'active'),
       'Every learned rule should be active at this point.');
   },

@@ -21,15 +21,9 @@ Now collect the payoff. You are going to ask Copilot for the exact thing that st
 
 ### ⌨️ Activity: Ask Copilot for the missing tests
 
-1. Check out the pull request branch and bring in the rule you just merged.
+1. Open the **Add applyDiscount to the cart module** pull request and select **Update branch**.
 
-   ```bash
-   git fetch origin
-   git switch add-discount
-   git merge origin/main
-   ```
-
-   You are now on the branch that adds `applyDiscount`, with your new rule in place.
+   That merges `main` — including the rule you just taught — into the pull request branch. The rule is now part of the context for this change.
 
 1. Open Copilot Chat and ask for the change *without mentioning tests at all*:
 
@@ -43,7 +37,9 @@ Now collect the payoff. You are going to ask Copilot for the exact thing that st
 
 Now turn what you just saw into something the grader can verify.
 
-1. Open `test/cart.test.js` and add `applyDiscount` to the import at the top:
+1. In the pull request, open **Files changed**, find `test/cart.test.js`, and select the pencil icon to edit it. Make sure you are editing on the `add-discount` branch.
+
+1. Add `applyDiscount` to the import at the top:
 
    ```js
    const { addItem, removeItem, subtotal, applyDiscount } = require('../src/cart');
@@ -58,13 +54,7 @@ Now turn what you just saw into something the grader can verify.
    });
    ```
 
-1. Run the suite and push.
-
-   ```bash
-   npm test
-   git commit -am "Add tests for applyDiscount"
-   git push
-   ```
+1. Select **Commit changes…** and commit directly to `add-discount`. The test suite runs on the pull request; wait for it to go green.
 
 1. Merge the **Add applyDiscount to the cart module** pull request. The gap you found in step 2 is now closed.
 
@@ -77,6 +67,6 @@ Now turn what you just saw into something the grader can verify.
 - **No Copilot access?** Skip the first activity entirely. The second one is the graded part.
 - **`applyDiscount is not defined`** means the import at the top of `test/cart.test.js` still needs updating.
 - The check looks for every function exported from `src/cart.js` to be referenced in `test/cart.test.js`.
-- If `git switch add-discount` fails, run `git fetch origin` first.
+- **No "Update branch" button?** It only appears when `main` has moved ahead. Confirm you merged the candidate pull request in step 3.
 
 </details>

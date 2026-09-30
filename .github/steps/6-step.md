@@ -36,14 +36,7 @@ So before you let anything merge itself, you make the floor solid:
 
 1. Confirm **Allow squash merging** is also selected. The policy specifies `method: squash`.
 
-1. Commit and push from your working branch so the check can run.
-
-   ```bash
-   git switch teach-the-repo
-   git pull origin main --no-rebase
-   git commit --allow-empty -m "Guard auto-merge with branch protection"
-   git push
-   ```
+1. Ask Mona to verify the floor is solid: open the **Actions** tab, select **Step 6**, then select **Run workflow → Run workflow** on the `main` branch.
 
    `main` no longer accepts direct pushes — that is the protection you just configured doing its job.
 
@@ -54,8 +47,8 @@ So before you let anything merge itself, you make the floor solid:
 
 - **Cannot find the status check?** It only appears after it has been reported at least once. Your step 3 candidate already reported it, so search for `Evaluate instruction candidate` and it should be there.
 - The check is named exactly **Evaluate instruction candidate**, matching `required_checks` in your policy.
-- If pushing to `main` now fails, that is branch protection working. Push to `teach-the-repo` instead.
-- **"The auto-merge policy is not enabled on the default branch"** means your step 5 pull request was never merged. Merge it, then `git pull origin main --no-rebase` and push again.
+- If pushing to `main` now fails, that is branch protection working. Every change belongs on a branch and a pull request.
+- **"The auto-merge policy is not enabled on the default branch"** means your step 5 pull request was never merged. Merge it, then run this step's workflow again.
 - Do not enable **Allow force pushes** or any bypass list. The next two steps assume the floor holds.
 
 </details>
