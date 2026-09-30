@@ -74,3 +74,14 @@ test('propose-instruction resolves the pull request number for every event', () 
     'issue.number is null on review events; use the PR_NUMBER fallback instead');
   assert.match(yaml, /github\.event\.comment\.id \|\| github\.event\.review\.id/);
 });
+
+// Review feedback and timeline comments anchor differently on the pull request
+// page, so a single hardcoded fragment makes provenance links for two of the
+// three paths point at nothing.
+test('provenance links use the right anchor for each kind of feedback', () => {
+  const anchor = (type) => candidate({ ...valid, comment_type: type }).provenance.source_url.split('#')[1];
+  assert.equal(anchor(undefined), `issuecomment-${valid.comment_id}`);
+  assert.equal(anchor('issue_comment'), `issuecomment-${valid.comment_id}`);
+  assert.equal(anchor('review'), `pullrequestreview-${valid.comment_id}`);
+  assert.equal(anchor('review_comment'), `discussion_r${valid.comment_id}`);
+});

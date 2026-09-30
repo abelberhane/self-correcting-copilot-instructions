@@ -43,13 +43,14 @@ jobs:
           ACTOR: ${{ github.actor }}
           ASSOCIATION: ${{ github.event.comment.author_association || github.event.review.author_association }}
           COMMENT_ID: ${{ github.event.comment.id || github.event.review.id }}
+          COMMENT_TYPE: ${{ github.event_name == 'pull_request_review' && 'review' || github.event_name == 'pull_request_review_comment' && 'review_comment' || 'issue_comment' }}
           PR_NUMBER: ${{ github.event.issue.number || github.event.pull_request.number }}
           REPOSITORY: ${{ github.repository }}
           GH_TOKEN: ${{ github.token }}
         run: |
           labels=$(gh pr view "$PR_NUMBER" --json labels --jq '[.labels[].name]')
           author=$(gh pr view "$PR_NUMBER" --json author --jq '.author.login')
-          jq -n --arg repository "$REPOSITORY" --arg body "$BODY" --arg actor "$ACTOR" --arg association "$ASSOCIATION" --argjson comment "$COMMENT_ID" --argjson pr "$PR_NUMBER" --arg author "$author" --argjson labels "$labels" '{repository:$repository,body:$body,comment_id:$comment,actor:{login:$actor,association:$association},pull_request:{number:$pr,author:$author,labels:$labels}}' > "$RUNNER_TEMP/event.json"
+          jq -n --arg repository "$REPOSITORY" --arg body "$BODY" --arg actor "$ACTOR" --arg association "$ASSOCIATION" --argjson comment "$COMMENT_ID" --arg comment_type "$COMMENT_TYPE" --argjson pr "$PR_NUMBER" --arg author "$author" --argjson labels "$labels" '{repository:$repository,body:$body,comment_id:$comment,comment_type:$comment_type,actor:{login:$actor,association:$association},pull_request:{number:$pr,author:$author,labels:$labels}}' > "$RUNNER_TEMP/event.json"
           node scripts/propose-instruction.js "$RUNNER_TEMP/event.json" "$RUNNER_TEMP/candidate.json"
       - name: Create isolated candidate branch
         env:

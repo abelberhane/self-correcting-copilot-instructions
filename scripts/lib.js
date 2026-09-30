@@ -110,6 +110,15 @@ function opposite(a, b) {
   return normalize(a) === normalize(b) && /\b(always)\b/i.test(a + b) && /\b(never|do not|don't)\b/i.test(a + b);
 }
 
+// Each kind of review feedback has its own fragment on the pull request page, and
+// they are not formatted alike. Using the wrong one produces a provenance link
+// that silently goes nowhere, which defeats the point of recording provenance.
+function commentAnchor(type, id) {
+  if (type === 'review') return `pullrequestreview-${id}`;
+  if (type === 'review_comment') return `discussion_r${id}`;
+  return `issuecomment-${id}`;
+}
+
 function makeCandidate(fields, event, now = new Date().toISOString()) {
   const ruleFingerprint = fingerprint(fields.rule);
   return {
@@ -118,7 +127,7 @@ function makeCandidate(fields, event, now = new Date().toISOString()) {
     ...(fields.target_id ? { target_id: fields.target_id } : {}),
     provenance: { repository: event.repository, pull_request: event.pull_request.number, comment_id: event.comment_id,
       actor: event.actor.login, actor_association: event.actor.association,
-      source_url: `https://github.com/${event.repository}/pull/${event.pull_request.number}#issuecomment-${event.comment_id}` },
+      source_url: `https://github.com/${event.repository}/pull/${event.pull_request.number}#${commentAnchor(event.comment_type, event.comment_id)}` },
     fingerprint: ruleFingerprint, created_at: now
   };
 }
