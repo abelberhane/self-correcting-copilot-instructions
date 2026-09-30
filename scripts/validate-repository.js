@@ -37,6 +37,9 @@ for (let step = 1; step <= STEP_COUNT; step++) {
   // workflow fires at once on repository creation and the learner gets a wall
   // of failed runs.
   if (!/branches-ignore:\s*\n\s*- main\b/.test(contents)) throw new Error(`${step}-step.yml must list "main" under branches-ignore.`);
+  // Dependabot can open a pull request the moment the learner copies the template.
+  // Grading its branch fails the step and marks the copy red for work nobody did.
+  if (!contents.includes("- 'dependabot/**'")) throw new Error(`${step}-step.yml must ignore dependabot branches.`);
   const handoff = step < STEP_COUNT ? `gh workflow enable "Step ${step + 1}"` : 'finish-exercise.yml';
   if (!contents.includes(handoff)) throw new Error(`${step}-step.yml must hand off with "${handoff}".`);
 }
