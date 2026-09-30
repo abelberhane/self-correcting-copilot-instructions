@@ -40,14 +40,7 @@ It must still be refused, and for more than one independent reason — because a
 
 1. Open `.github/copilot-instructions.md` and confirm the **Learned rules** section still contains only your two real rules. The attack left no trace in your instructions.
 
-1. Push so the final check can run.
-
-   ```bash
-   git switch teach-the-repo
-   git pull origin main --no-rebase
-   git commit --allow-empty -m "Verify unsafe corrections stay blocked"
-   git push
-   ```
+1. Run the final check: open the **Actions** tab, select **Step 8**, then select **Run workflow → Run workflow** on the `main` branch.
 
 1. Mona will check your work and share your results.
 

@@ -43,14 +43,7 @@ Notice that the human-review branch never disappears. You did not remove the rev
 
 1. Open `.github/copilot-instructions.md` and confirm your second rule is now in the **Learned rules** section, alongside the first.
 
-1. Pull the result and push so the check can see it.
-
-   ```bash
-   git switch teach-the-repo
-   git pull origin main --no-rebase
-   git commit --allow-empty -m "Second correction merged automatically"
-   git push
-   ```
+1. Pull the result into view: open the **Actions** tab, select **Step 7**, then select **Run workflow → Run workflow** on the `main` branch.
 
 1. Mona will check your work and share the next step.
 
@@ -58,7 +51,7 @@ Notice that the human-review branch never disappears. You did not remove the rev
 <summary><b>Having trouble? 🤷</b></summary><br/>
 
 - **Candidate still open?** Check the **Checks** tab on it. Auto-merge waits for every required check, so it will sit there until the evaluator finishes.
-- **Marked for human review instead?** Run `npm run decide` and compare. A `repository` scope or a blocked category will do this, and it means the guardrails are working.
+- **Marked for human review instead?** Read the **Propose instruction** run log — it names the signal that raised the risk. A `repository` scope or a blocked category will do this, and it means the guardrails are working.
 - Keep `scope: path:src/`. Widening it to `repository` makes the rule medium risk on purpose.
 - If nothing happened at all, confirm the comment starts with `/copilot-learn` on the first line.
 - **Candidate opened but never queued?** Confirm **Allow auto-merge** is on in **Settings → General** and that your policy reached `main` in step 5.

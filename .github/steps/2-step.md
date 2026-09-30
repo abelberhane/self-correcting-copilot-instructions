@@ -23,13 +23,9 @@ A pull request is waiting for you. Look at it the way you would look at a teamma
 
 1. Notice what is missing: every other exported function in this module has a test in `test/cart.test.js`. This one does not.
 
-1. Confirm the automated checks do not catch it. The test suite passes, because passing tests say nothing about the tests nobody wrote.
+1. Confirm the automated checks do not catch it. Look at the checks at the bottom of the pull request: they are green. The test suite passes, because passing tests say nothing about the tests nobody wrote.
 
-   ```bash
-   npm test
-   ```
-
-1. Leave a review comment the way you normally would. Anything in your own words, such as:
+1. Leave a review comment the way you normally would. Any of the three ways GitHub offers will work — a comment at the bottom of the **Conversation** tab, an inline comment on a file, or **Review changes → Comment**. Use your own words, such as:
 
    ```md
    Please add tests for applyDiscount before we merge this.
@@ -46,6 +42,7 @@ A pull request is waiting for you. Look at it the way you would look at a teamma
 
 - Comment on the pull request itself, not on the exercise issue.
 - Write the comment in your own words. Do **not** use `/copilot-learn` yet — that is the next step, and this check expects an ordinary comment.
+- A plain comment, an inline file comment, and **Review changes → Comment** all work. If a review you submitted did not trigger anything, make sure it had a written body rather than only a rating.
 - If you cannot find the pull request, check the **Pull requests** tab. If it is missing, re-run the Step 1 workflow from the **Actions** tab to create it.
 - Nothing should change in `.github/copilot-instructions.md` during this step. That is the expected result, not a failure.
 
