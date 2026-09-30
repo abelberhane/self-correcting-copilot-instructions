@@ -152,7 +152,10 @@ jobs:
 
       - name: Disable current workflow and enable next one
         run: |
-          gh workflow disable "${{ github.workflow }}"
+          # Two events can grade the same work (a review and its inline comment).
+          # Disabling an already-disabled workflow is an error, which would show the
+          # learner a failed check for work that actually succeeded.
+          gh workflow disable "${{ github.workflow }}" || true
           gh workflow enable "Step 8"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
